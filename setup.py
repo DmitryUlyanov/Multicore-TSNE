@@ -24,6 +24,7 @@ setup(
     description='Multicore version of t-SNE algorithm.',
     author="Dmitry Ulyanov (based on L. Van der Maaten's code)",
     author_email='dmitry.ulyanov.msu@gmail.com',
+    url='https://github.com/DmitryUlyanov/Multicore-TSNE',
     install_requires=[
         'numpy',
         'psutil',

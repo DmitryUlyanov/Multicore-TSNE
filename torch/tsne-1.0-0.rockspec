@@ -2,17 +2,16 @@ package = "tsne"
 version = "1.0-0"
 
 source = {
-   url = "git@bitbucket.org:dmitry_ulyanov/tsne_multicore.git",
+   url = "git://github.com/DmitryUlyanov/Multicore-TSNE.git",
    tag = "master"
 }
 
 description = {
-   detailed = [[]],
+   detailed = [[ Wrapper for multicore t-SNE implementation. ]],
 }
 
 dependencies = {
    "torch >= 7.0",
-   "nn",
 }
 
 build = {

@@ -12,7 +12,7 @@ Barnes-Hut t-SNE is done in two steps.
 
 - Second step: the embedding is optimized using gradient descent. This part is essentially consecutive and although at each iteration some statistics are computed over all data points, parallelizing the iteration does not result in overall significant speed-up. But there is still some room for improvement.
 
-So when can you benefit from parallelization? It is almost true, that the second step computation time depends only on `N`. The first part's time depends on `D` a lot, so for small `D` `time(Step 1) << time(Step 2)`, for large `D` `time(Step 1) >> time(Step 2)`. As we are only good at parallelizing step 1 we will benefit most when `D` is large enough (MNIST's `D = 784` is large, `D = 10` even for `N=1000000` is not so much). I wrote multicore modification originally for [Springleaf competition](https://www.kaggle.com/c/springleaf-marketing-response), where my data table was about `300000 x 3000` and only several days left till the end of the competition so any speed-up was handy.
+So when can you benefit from parallelization? It is almost true, that the second step computation time is constant of `D` and depends mostly on `N`. The first part's time depends on `D` a lot, so for small `D` `time(Step 1) << time(Step 2)`, for large `D` `time(Step 1) >> time(Step 2)`. As we are only good at parallelizing step 1 we will benefit most when `D` is large enough (MNIST's `D = 784` is large, `D = 10` even for `N=1000000` is not so much). I wrote multicore modification originally for [Springleaf competition](https://www.kaggle.com/c/springleaf-marketing-response), where my data table was about `300000 x 3000` and only several days left till the end of the competition so any speed-up was handy.
 
 # Benchmark
 
@@ -116,6 +116,11 @@ Y = tsne(X, n_components, perplexity, n_iter, angle, n_jobs)
 # License
 
 Inherited from [original repo's license](https://github.com/lvdmaaten/bhtsne).
+
+# Future work
+
+- Allow other types than double
+- Improve step 2 performance (possible)
 
 # Citation
 
