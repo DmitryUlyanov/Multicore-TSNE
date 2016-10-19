@@ -64,7 +64,8 @@ class MulticoreTSNE:
     def fit_transform(self, X):
 
         assert X.ndim == 2, 'X should be 2D array.'
-
+        assert X.dtype == np.float64, 'Only double arrays are supported for now. Use .astype(np.float64) to convert.'
+        
         if self.n_jobs == -1:
             self.n_jobs = psutil.cpu_count()
 
