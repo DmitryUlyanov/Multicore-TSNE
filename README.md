@@ -18,7 +18,7 @@ So when can you benefit from parallelization? It is almost true, that the second
 
 ### 1 core
 
-Interestingly, that this code beats other implementations. We compare to `sklearn` (Barnes-Hut of course), [L. Van der Maaten's bhtsne](https://github.com/lvdmaaten/bhtsne), L. Van der Maaten's bhtsne, [py_bh_tsne repo](https://github.com/danielfrg/tsne) (cython wrapper for bhtsne). `perplexity = 30, theta=0.5` for every run. In fact [py_bh_tsne repo](https://github.com/danielfrg/tsne) works at the same speed as this code when using more optimization flags for compiler.
+Interestingly, that this code beats other implementations. We compare to `sklearn` (Barnes-Hut of course), L. Van der Maaten's [bhtsne](https://github.com/lvdmaaten/bhtsne), [py_bh_tsne repo](https://github.com/danielfrg/tsne) (cython wrapper for bhtsne with QuadTree). `perplexity = 30, theta=0.5` for every run. In fact [py_bh_tsne repo](https://github.com/danielfrg/tsne) works at the same speed as this code when using more optimization flags for compiler.
 
 This is a benchmark for `70000x784` MNIST data:
 
@@ -29,7 +29,7 @@ This is a benchmark for `70000x784` MNIST data:
 | py_bh_tsne                   | 1232            | 367            |
 | sklearn(0.18)                | ~5400           | ~20920         |
 
-I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do.
+I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do (you can find test script in `python/tests` folder).
 
 ### Multicore
 
