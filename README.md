@@ -10,7 +10,7 @@ Barnes-Hut t-SNE is done in two steps.
 
 - First step: an efficient data structure for nearest neighbours search is built and used to compute probabilities. This can be done in parallel for each point in the dataset, this is why we can expect a good speed-up by using more cores.
 
-- Second step: the embedding is optimized using gradient descent. This part is essentially consecutive and although at each iteration some statistics are computed over all data points, parallelizing the iteration does not result in overall significant speed-up. But there is still some room for improvement.
+- Second step: the embedding is optimized using gradient descent. This part is essentially consecutive so we can only optimize within iteration. In fact some parts can be parallelized effectively, but not all of them a parallelized for now. That is why second step speed-up will not be that significant as first step sepeed-up but there is still room for improvement.
 
 So when can you benefit from parallelization? It is almost true, that the second step computation time is constant of `D` and depends mostly on `N`. The first part's time depends on `D` a lot, so for small `D` `time(Step 1) << time(Step 2)`, for large `D` `time(Step 1) >> time(Step 2)`. As we are only good at parallelizing step 1 we will benefit most when `D` is large enough (MNIST's `D = 784` is large, `D = 10` even for `N=1000000` is not so much). I wrote multicore modification originally for [Springleaf competition](https://www.kaggle.com/c/springleaf-marketing-response), where my data table was about `300000 x 3000` and only several days left till the end of the competition so any speed-up was handy.
 
@@ -18,7 +18,7 @@ So when can you benefit from parallelization? It is almost true, that the second
 
 ### 1 core
 
-Interestingly, that this code beats other implementations. We compare to `sklearn` (Barnes-Hut of course), [L. Van der Maaten's bhtsne](https://github.com/lvdmaaten/bhtsne), L. Van der Maaten's bhtsne, [py_bh_tsne repo](https://github.com/danielfrg/tsne) (cython wrapper for bhtsne). `perplexity = 30, theta=0.5` for every run. In fact [py_bh_tsne repo](https://github.com/danielfrg/tsne) works at the same speed as this code when using more optimization flags for compiler.
+Interestingly, that this code beats other implementations. We compare to `sklearn` (Barnes-Hut of course), L. Van der Maaten's [bhtsne](https://github.com/lvdmaaten/bhtsne), [py_bh_tsne repo](https://github.com/danielfrg/tsne) (cython wrapper for bhtsne with QuadTree). `perplexity = 30, theta=0.5` for every run. In fact [py_bh_tsne repo](https://github.com/danielfrg/tsne) works at the same speed as this code when using more optimization flags for compiler.
 
 This is a benchmark for `70000x784` MNIST data:
 
@@ -29,7 +29,7 @@ This is a benchmark for `70000x784` MNIST data:
 | py_bh_tsne                   | 1232            | 367            |
 | sklearn(0.18)                | ~5400           | ~20920         |
 
-I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do.
+I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do (you can find test script in `python/tests` folder).
 
 ### Multicore
 
