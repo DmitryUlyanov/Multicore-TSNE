@@ -87,7 +87,7 @@ For this implementation `n_components` is fixed to `2`, which is the most common
 You can test it on MNIST dataset with the following command:
 
 ```
-python python/tests/mnist.py <n_jobs>
+python python/tests/test.py <n_jobs>
 ```
 
 #### Note on jupyter use
