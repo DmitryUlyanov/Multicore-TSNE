@@ -24,10 +24,10 @@ This is a benchmark for `70000x784` MNIST data:
 
 | Method                       | Step 1 (sec)   | Step 2 (sec)  |
 | ---------------------------- |:---------------:| --------------:|
-| MulticoreTSNE(n_jobs=1)      | 912             | 350            |
+| MulticoreTSNE(n_jobs=1)      | **912**         | **350**        |
 | bhtsne                       | 4257            | 1233           |
 | py_bh_tsne                   | 1232            | 367            |
-| sklearn(0.18)                | 5400            | ~20920         |
+| sklearn(0.18)                | ~5400           | ~20920         |
 
 I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do.
 
