@@ -99,9 +99,9 @@ Memory leakages are possible if you interrupt the process. Should be OK if you l
 
 ## Torch
 
-To install execute the following command:
+To install clone repository, cd there and execute the following command:
 ```
-i
+cd torch; luarocks make
 ```
 
 You can run t-SNE like that:
