@@ -76,7 +76,7 @@ Y = tsne.fit_transform(X)
 
 Please refer to [sklearn TSNE manual](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html) for parameters explanation.
 
-For this implementation `n_components` is fixed to `2`, which is the most common case ( use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) otherwise). Also note that some of the parameters will be ignored for sklearn compatibility. Only these parameters are used (and they are the most important ones):
+Only double arrays are supported for now. For this implementation `n_components` is fixed to `2`, which is the most common case (use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) or sklearn otherwise). Also note that some of the parameters will be ignored for sklearn compatibility. Only these parameters are used (and they are the most important ones):
 
 - perplexity
 - n_iter
@@ -99,9 +99,14 @@ Memory leakages are possible if you interrupt the process. Should be OK if you l
 
 ## Torch
 
-To install clone repository, cd there and execute the following command:
+To install execute the following command from repository folder:
 ```
-cd torch; luarocks make
+luarocks make torch/tsne-1.0-0.rockspec
+```
+or
+
+```
+luarocks install https://raw.githubusercontent.com/DmitryUlyanov/Multicore-TSNE/master/torch/tsne-1.0-0.rockspec
 ```
 
 You can run t-SNE like that:
