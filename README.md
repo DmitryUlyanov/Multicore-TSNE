@@ -49,7 +49,7 @@ Python and torch wrappers are available.
 ## Python
 ### Install
 
-Install prerequisites first:
+Make sure `cmake` is installed on your system and install python prerequisites:
 
 ```
 pip install -r requirements.txt
@@ -61,7 +61,7 @@ python setup.py install
 ```
 
 Pip installation does not copy `.so` file for some reason (experts wanted).
-Tested with both Python 2.7 and 3.5 (conda) and Ubuntu 14.04.
+Tested with both Python 2.7 and 3.5 (conda) and Ubuntu 14.04. Never tested on MacOS, something similar to [this](https://github.com/RobeDM/LIBIRWLS#compiling-1) should be done for successful compilation. 
 
 ### Run
 
