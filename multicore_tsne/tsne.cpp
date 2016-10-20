@@ -21,7 +21,6 @@
 #include "vptree.h"
 #include "tsne.h"
 
-using namespace std;
 
 static const int QT_NO_DIMS = 2;
 
@@ -256,7 +255,7 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
 
     // Build ball tree on data set
     VpTree<DataPoint, euclidean_distance>* tree = new VpTree<DataPoint, euclidean_distance>();
-    vector<DataPoint> obj_X(N, DataPoint(D, -1, X));
+    std::vector<DataPoint> obj_X(N, DataPoint(D, -1, X));
     for (int n = 0; n < N; n++) {
         obj_X[n] = DataPoint(D, n, X + n * D);
     }
@@ -269,9 +268,9 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
     #pragma omp parallel for
     for (int n = 0; n < N; n++)
     {
-        vector<double> cur_P(K);
-        vector<DataPoint> indices;
-        vector<double> distances;
+        std::vector<double> cur_P(K);
+        std::vector<DataPoint> indices;
+        std::vector<double> distances;
 
         // Find nearest neighbors
         tree->search(obj_X[n], K + 1, &indices, &distances);
