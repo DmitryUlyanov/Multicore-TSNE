@@ -61,7 +61,7 @@ python setup.py install
 ```
 
 Pip installation does not copy `.so` file for some reason (experts wanted).
-Tested with both Python 2.7 and 3.5 (conda) and Ubuntu 14.04. Never tested on MacOS, something similar to [this](https://github.com/RobeDM/LIBIRWLS#compiling-1) should be done for successful compilation. 
+Tested with both Python 2.7 and 3.5 (conda) and Ubuntu 14.04. Never tested on MacOS, something similar to [this](https://github.com/RobeDM/LIBIRWLS#compiling-1) should be done for successful compilation. Also read this [issue](https://github.com/DmitryUlyanov/Multicore-TSNE/issues/1).
 
 ### Run
 
