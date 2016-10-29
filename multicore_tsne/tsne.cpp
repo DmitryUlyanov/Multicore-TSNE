@@ -134,7 +134,7 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
         }
 
         // Print out progress
-        if (iter > 0 && iter % 50 == 0 || iter == max_iter - 1) {
+        if ((iter > 0 && iter % 50 == 0) || (iter == max_iter - 1)) {
             end = time(0);
             double C = .0;
 
