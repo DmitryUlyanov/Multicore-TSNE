@@ -1,8 +1,8 @@
-import numpy
 from setuptools import setup
-from distutils.command.install import install as DistutilsInstall
 import sys
 import os
+from setuptools.command.install import install
+
 
 '''
     Just because I wanted .so file to be built same way for python and torch
@@ -10,12 +10,27 @@ import os
 '''
 
 
-class MyInstall(DistutilsInstall):
+class MyInstall(install):
     def run(self):
-        os.system('mkdir -p multicore_tsne/release ; rm -r multicore_tsne/release/* ; cd multicore_tsne/release ; cmake -DCMAKE_BUILD_TYPE=RELEASE .. ; make VERBOSE=1')
+        if not os.path.exists('multicore_tsne/release'):
+            os.makedirs('multicore_tsne/release')
+        else:
+            os.system('rm -rf multicore_tsne/release/')
+            os.makedirs('multicore_tsne/release')
+
+        os.chdir('multicore_tsne/release/')
+        return_val = os.system('cmake -DCMAKE_BUILD_TYPE=RELEASE ..')
+
+        if return_val != 0:
+            print('cannot find cmake')
+            exit(-1)
+
+        os.system('make VERBOSE=1')
+        os.chdir('../..')
+        print(os.getcwd())
         os.system(
             'cp multicore_tsne/release/libtsne_multicore.so python/libtsne_multicore.so')
-        DistutilsInstall.run(self)
+        install.run(self)
 
 
 setup(
@@ -29,6 +44,7 @@ setup(
         'numpy',
         'psutil',
         'cffi',
+        'matplotlib',
     ],
 
     packages=['MulticoreTSNE'],
