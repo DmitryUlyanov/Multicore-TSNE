@@ -49,19 +49,19 @@ Python and torch wrappers are available.
 ## Python
 ### Install
 
-Make sure `cmake` is installed on your system and install python prerequisites:
+Make sure `cmake` is installed on your system.
 
+To install the package please do:
 ```
-pip install -r requirements.txt
-```
-
-Then install MulticoreTSNE:
-```
-python setup.py install
+git clone https://github.com/DmitryUlyanov/Multicore-TSNE.git
+cd Multicore-TSNE/
+pip install --no-cache-dir .
 ```
 
-Pip installation does not copy `.so` file for some reason (experts wanted).
-Tested with both Python 2.7 and 3.5 (conda) and Ubuntu 14.04. Never tested on MacOS, something similar to [this](https://github.com/RobeDM/LIBIRWLS#compiling-1) should be done for successful compilation. Also read this [issue](https://github.com/DmitryUlyanov/Multicore-TSNE/issues/1).
+It's important that you add `--no-cache-dir` otherwise pip won't copy
+the `.so` file which is needed at runtime.
+
+Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04. Never tested on MacOS, something similar to [this](https://github.com/RobeDM/LIBIRWLS#compiling-1) should be done for successful compilation. Also read this [issue](https://github.com/DmitryUlyanov/Multicore-TSNE/issues/1).
 
 ### Run
 

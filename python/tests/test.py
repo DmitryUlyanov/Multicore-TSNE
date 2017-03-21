@@ -16,8 +16,12 @@ def get_mnist():
 
     if not os.path.exists('mnist.pkl.gz'):
         print('downloading MNIST')
-        urllib.urlretrieve(
+        if sys.version_info >= (3, 0):
+            urllib.request.urlretrieve(
             'http://deeplearning.net/data/mnist/mnist.pkl.gz', 'mnist.pkl.gz')
+        else:
+            urllib.urlretrieve(
+                        'http://deeplearning.net/data/mnist/mnist.pkl.gz', 'mnist.pkl.gz')
         print('downloaded')
 
     f = gzip.open("mnist.pkl.gz", "rb")
