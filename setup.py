@@ -1,8 +1,7 @@
-from setuptools import setup
 import sys
 import os
 from setuptools.command.install import install
-
+from setuptools import setup
 
 '''
     Just because I wanted .so file to be built same way for python and torch
@@ -43,8 +42,7 @@ setup(
     install_requires=[
         'numpy',
         'psutil',
-        'cffi',
-        'matplotlib',
+        'cffi'
     ],
 
     packages=['MulticoreTSNE'],
