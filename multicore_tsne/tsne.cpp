@@ -212,6 +212,7 @@ double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int
         double buff1[QT_NO_DIMS];
         tree->computeNonEdgeForces(n, theta, buff, &sum_Q, &buff1[0]);
     }
+    delete tree;
 
     // Loop over all edges to compute t-SNE error
     int ind1, ind2;
