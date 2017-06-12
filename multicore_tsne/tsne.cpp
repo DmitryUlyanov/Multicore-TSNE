@@ -26,20 +26,24 @@ static const int QT_NO_DIMS = 2;
 
 // Perform t-SNE
 // X -- double matrix of size [N, D]
-// D -- input dimentionality
+// D -- input dimensionality
 // Y -- array to fill with the result of size [N, no_dims]
-// no_dims -- target dimentionality
-void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state) {
+// no_dims -- target dimensionality
+void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state, int verbose) {
 
     if (N - 1 < 3 * perplexity) {
-        fprintf(stderr, "Perplexity too large for the number of data points!\n");
+        if (verbose) {
+            fprintf(stderr, "Perplexity too large for the number of data points!\n");
+        }
         exit(1);
     }
 
     num_threads = _num_threads;
     omp_set_num_threads(num_threads);
 
-    fprintf(stderr, "Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
+    if (verbose) {
+        fprintf(stderr, "Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
+    }
 
     // Set learning parameters
     float total_time = .0;
@@ -58,7 +62,10 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
     }
 
     // Normalize input data (to prevent numerical problems)
-    fprintf(stderr, "Computing input similarities...\n");
+    if (verbose) {
+        fprintf(stderr, "Computing input similarities...\n");
+    }
+    
     start = time(0);
     zeroMean(X, N, D);
     double max_X = .0;
@@ -73,7 +80,7 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
     int* row_P; int* col_P; double* val_P;
 
     // Compute asymmetric pairwise input similarities
-    computeGaussianPerplexity(X, N, D, &row_P, &col_P, &val_P, perplexity, (int) (3 * perplexity));
+    computeGaussianPerplexity(X, N, D, &row_P, &col_P, &val_P, perplexity, (int) (3 * perplexity), verbose);
 
     // Symmetrize input similarities
     symmetrizeMatrix(&row_P, &col_P, &val_P, N);
@@ -86,7 +93,9 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
     }
 
     end = time(0);
-    fprintf(stderr, "Done in %4.2f seconds (sparsity = %f)!\nLearning embedding...\n", (float)(end - start) , (double) row_P[N] / ((double) N * (double) N));
+    if (verbose) {
+        fprintf(stderr, "Done in %4.2f seconds (sparsity = %f)!\nLearning embedding...\n", (float)(end - start) , (double) row_P[N] / ((double) N * (double) N));
+    }
 
     // Step 2
 
@@ -143,11 +152,16 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
 
             C = evaluateError(row_P, col_P, val_P, Y, N, theta);  // doing approximate computation here!
 
-            if (iter == 0)
-                fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, C);
+            if (iter == 0) {
+                if (verbose) { 
+                    fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, C);
+                }
+            }
             else {
                 total_time += (float) (end - start);
-                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter, C, (float) (end - start) );
+                if (verbose) {
+                    fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter, C, (float) (end - start) );
+                }
             }
             start = time(0);
         }
@@ -163,7 +177,9 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
     free(col_P); col_P = NULL;
     free(val_P); val_P = NULL;
 
-    fprintf(stderr, "Fitting performed in %4.2f seconds.\n", total_time);
+    if (verbose) { 
+        fprintf(stderr, "Fitting performed in %4.2f seconds.\n", total_time);
+    }   
 }
 
 
@@ -233,7 +249,7 @@ double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int
 }
 
 // Compute input similarities with a fixed perplexity using ball trees (this function allocates memory another function should free)
-void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int** _col_P, double** _val_P, double perplexity, int K) {
+void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int** _col_P, double** _val_P, double perplexity, int K, int verbose) {
 
     if (perplexity > K) fprintf(stderr, "Perplexity should be lower than K!\n");
 
@@ -266,7 +282,9 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
     tree->create(obj_X);
 
     // Loop over all points to find nearest neighbors
-    fprintf(stderr, "Building tree...\n");
+    if (verbose) {
+        fprintf(stderr, "Building tree...\n");    
+    }
 
     int steps_completed = 0;
     #pragma omp parallel for
@@ -487,10 +505,13 @@ double TSNE::randn() {
 
 extern "C"
 {
-    extern void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state)
+    extern void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state, int verbose)
     {
-        fprintf(stderr, "Performing t-SNE using %d cores.\n", _num_threads);
+        if (verbose) {
+            fprintf(stderr, "Performing t-SNE using %d cores.\n", _num_threads);    
+        }
+        
         TSNE tsne;
-        tsne.run(X, N, D, Y, no_dims, perplexity, theta, _num_threads, max_iter, random_state);
+        tsne.run(X, N, D, Y, no_dims, perplexity, theta, _num_threads, max_iter, random_state, verbose);
     }
 }
