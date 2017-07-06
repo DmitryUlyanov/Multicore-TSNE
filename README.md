@@ -61,7 +61,12 @@ pip install --no-cache-dir .
 It's important that you add `--no-cache-dir` otherwise pip won't copy
 the `.so` file which is needed at runtime.
 
-Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04. Never tested on MacOS, something similar to [this](https://github.com/RobeDM/LIBIRWLS#compiling-1) should be done for successful compilation. Also read this [issue](https://github.com/DmitryUlyanov/Multicore-TSNE/issues/1).
+For [installation on MacOS](https://github.com/DmitryUlyanov/Multicore-TSNE/issues/1), before running `pip install --no-cache-dir .`, you need to
+* install gcc with `brew install gcc --without-multilib
+* change line 9 of [CMakeLists.txt](multicore_tsne/CMakeLists.txt) to `SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -O3 -fPIC -ffast-math -funroll-loops -lstdc++")`
+* run `export CC="/usr/local/Cellar/gcc/X.x.x/bin/gcc-X"; export CXX="/usr/local/Cellar/gcc/X.x.x/bin/gcc-X"`, where `X` and `x` refers to the version of `gcc`; in my case, e.g., the path reads `/usr/local/Cellar/gcc/6.3.0_1/bin/gcc-6`
+
+Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04.
 
 ### Run
 
