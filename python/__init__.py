@@ -71,6 +71,10 @@ class MulticoreTSNE:
             self.n_jobs = psutil.cpu_count()
 
         assert self.n_jobs > 0, 'Wrong n_jobs parameter.'
+        
+        if (X.flags['C_CONTIGUOUS'] is False):
+        	print 'Converting input to contiguous array...'
+        	X = np.ascontiguousarray(X)
 
         N, D = X.shape
         Y = np.zeros((N, self.n_components))
