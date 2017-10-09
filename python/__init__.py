@@ -4,6 +4,7 @@ import psutil
 import threading
 import os
 import sys
+from __future__ import print_function
 
 '''
     Helper class to execute TSNE in separate thread.
@@ -73,7 +74,7 @@ class MulticoreTSNE:
         assert self.n_jobs > 0, 'Wrong n_jobs parameter.'
         
         if (X.flags['C_CONTIGUOUS'] is False):
-        	print 'Converting input to contiguous array...'
+        	print('Converting input to contiguous array...')
         	X = np.ascontiguousarray(X)
 
         N, D = X.shape
