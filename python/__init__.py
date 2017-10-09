@@ -53,12 +53,13 @@ class MulticoreTSNE:
         self.n_iter = n_iter
         self.n_jobs = n_jobs
         self.random_state = -1 if random_state is None else random_state
-
+        self.verbose = int(verbose)
+        
         assert n_components == 2, 'n_components should be 2'
 
         self.ffi = cffi.FFI()
         self.ffi.cdef(
-            "void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state);")
+            "void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state, int verbose);")
 
         path = os.path.dirname(os.path.realpath(__file__))
         self.C = self.ffi.dlopen(path + "/libtsne_multicore.so")
@@ -86,7 +87,8 @@ class MulticoreTSNE:
         t = FuncThread(self.C.tsne_run_double,
                        cffi_X, N, D,
                        cffi_Y, self.n_components,
-                       self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state)
+                       self.perplexity, self.angle, self.n_jobs, self.n_iter, 
+                       self.random_state, self.verbose)
         t.daemon = True
         t.start()
 
