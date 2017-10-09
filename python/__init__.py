@@ -1,10 +1,10 @@
+from __future__ import print_function
 import numpy as np
 import cffi
 import psutil
 import threading
 import os
 import sys
-from __future__ import print_function
 
 '''
     Helper class to execute TSNE in separate thread.
