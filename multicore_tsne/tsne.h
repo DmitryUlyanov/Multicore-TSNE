@@ -24,7 +24,6 @@ public:
     void save_data(double* data, int* landmarks, double* costs, int n, int d);
     void symmetrizeMatrix(int** row_P, int** col_P, double** val_P, int N);
 private:
-    int num_threads;
     void computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int D, double* dC, double theta);
     double evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int N, double theta);
     void zeroMean(double* X, int N, int D);

@@ -39,9 +39,9 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
         exit(1);
     }
 
-    num_threads = _num_threads;
 #ifdef _OPENMP
-    omp_set_num_threads(num_threads);
+    omp_set_num_threads(_num_threads);
+    omp_set_schedule(omp_sched_guided, 0);
 #endif
 
     printf("Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
@@ -115,13 +115,9 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
         // Compute approximate gradient
         computeGradient(row_P, col_P, val_P, Y, N, no_dims, dY, theta);
 
-
         for (int i = 0; i < N * no_dims; i++) {
             // Update gains
-            gains[i] = (sign(dY[i]) != sign(uY[i])) ? (gains[i] + .2) : (gains[i] * .8);
-            if (gains[i] < .01) {
-                gains[i] = .01;
-            }
+            gains[i] = (sign(dY[i]) != sign(uY[i])) ? (gains[i] + .2) : (gains[i] * .8 + .01);
 
             // Perform gradient update (with momentum and gains)
             uY[i] = momentum * uY[i] - eta * gains[i] * dY[i];
@@ -222,13 +218,15 @@ double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int
     delete tree;
 
     // Loop over all edges to compute t-SNE error
-    int ind1, ind2;
-    double C = .0, Q;
+    double C = .0;
+#ifdef _OPENMP
+    #pragma omp parallel for reduction(+:C)
+#endif
     for (int n = 0; n < N; n++) {
-        ind1 = n * QT_NO_DIMS;
+        int ind1 = n * QT_NO_DIMS;
         for (int i = row_P[n]; i < row_P[n + 1]; i++) {
-            Q = .0;
-            ind2 = col_P[i] * QT_NO_DIMS;
+            double Q = .0;
+            int ind2 = col_P[i] * QT_NO_DIMS;
             for (int d = 0; d < QT_NO_DIMS; d++) buff[d]  = Y[ind1 + d];
             for (int d = 0; d < QT_NO_DIMS; d++) buff[d] -= Y[ind2 + d];
             for (int d = 0; d < QT_NO_DIMS; d++) Q += buff[d] * buff[d];
