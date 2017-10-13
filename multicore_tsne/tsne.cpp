@@ -14,8 +14,11 @@
 #include <stdio.h>
 #include <cstring>
 #include <time.h>
-#include <omp.h>
 #include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "quadtree.h"
 #include "vptree.h"
@@ -37,7 +40,9 @@ void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexit
     }
 
     num_threads = _num_threads;
+#ifdef _OPENMP
     omp_set_num_threads(num_threads);
+#endif
 
     printf("Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
 
@@ -182,7 +187,9 @@ void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, do
     tree->computeEdgeForces(inp_row_P, inp_col_P, inp_val_P, N, pos_f);
 
 
+#ifdef _OPENMP
     #pragma omp parallel for reduction(+:sum_Q)
+#endif
     for (int n = 0; n < N; n++) {
         double buff[QT_NO_DIMS];
         double this_Q = .0;
@@ -269,7 +276,9 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
     printf("Building tree...\n");
 
     int steps_completed = 0;
+#ifdef _OPENMP
     #pragma omp parallel for
+#endif
     for (int n = 0; n < N; n++)
     {
         std::vector<double> cur_P(K);
@@ -342,12 +351,16 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
         }
 
         // Print progress
+#ifdef _OPENMP
         #pragma omp atomic
+#endif
         ++steps_completed;
 
         if (steps_completed % 10000 == 0)
         {
+#ifdef _OPENMP
             #pragma omp critical
+#endif
             printf(" - point %d of %d\n", steps_completed, N);
         }
     }
