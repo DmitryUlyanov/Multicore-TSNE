@@ -45,3 +45,10 @@ class TestMulticoreTSNE(unittest.TestCase):
         X, y = self.Xy
         tsne = MulticoreTSNE(perplexity=X.shape[0], n_iter=100)
         tsne.fit_transform(X)
+
+    def test_dont_change_x(self):
+        X = np.random.random((20, 4))
+        X_orig = X.copy()
+        MulticoreTSNE(n_iter=400).fit_transform(X)
+        np.testing.assert_array_equal(X, X_orig)
+

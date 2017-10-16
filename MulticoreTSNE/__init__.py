@@ -62,14 +62,12 @@ class MulticoreTSNE:
         path = os.path.dirname(os.path.realpath(__file__))
         self.C = self.ffi.dlopen(path + "/libtsne_multicore.so")
 
-    def fit_transform(self, X):
+    def fit_transform(self, X, _y=None):
 
         assert X.ndim == 2, 'X should be 2D array.'
-        assert X.dtype == np.float64, 'Only double arrays are supported for now. Use .astype(np.float64) to convert.'
-        
-        if (X.flags['C_CONTIGUOUS'] is False):
-        	print('Converting input to contiguous array...')
-        	X = np.ascontiguousarray(X)
+
+        # X may be modified, make a copy
+        X = np.array(X, dtype=float, order='C', copy=True)
 
         N, D = X.shape
         Y = np.zeros((N, self.n_components))
