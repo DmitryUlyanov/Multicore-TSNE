@@ -53,6 +53,7 @@ class MulticoreTSNE:
         self.n_jobs = n_jobs
         self.random_state = -1 if random_state is None else random_state
         self.init = init
+        self.embedding_ = None
 
         assert n_components == 2, 'n_components should be 2'
 
@@ -68,6 +69,10 @@ class MulticoreTSNE:
 
         path = os.path.dirname(os.path.realpath(__file__))
         self.C = self.ffi.dlopen(path + "/libtsne_multicore.so")
+
+    def fit(self, X, y=None):
+        self.fit_transform(X, y)
+        return self
 
     def fit_transform(self, X, _y=None):
 
@@ -97,5 +102,7 @@ class MulticoreTSNE:
         while t.is_alive():
             t.join(timeout=1.0)
             sys.stdout.flush()
+
+        self.embedding_ = Y
 
         return Y
