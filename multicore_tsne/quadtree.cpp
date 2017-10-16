@@ -8,10 +8,11 @@
  *  Multicore version by Dmitry Ulyanov, 2016. dmitry.ulyanov.msu@gmail.com
  */
 
-#include <math.h>
-#include <float.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cmath>
+#include <cfloat>
+#include <cstdlib>
+#include <cstdio>
+
 #include "quadtree.h"
 
 

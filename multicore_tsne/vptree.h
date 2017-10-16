@@ -9,10 +9,10 @@
  */
 
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 #include <vector>
-#include <stdio.h>
+#include <cstdio>
 #include <queue>
 #include <limits>
 
