@@ -69,4 +69,13 @@ if __name__ == '__main__':
 
         ext_modules=EXT_MODULES,
         cmdclass={'build_ext': CMakeBuild},
+
+        extras_require={
+            'test': [
+                'scikit-learn',
+                'scipy',
+            ],
+        },
+        test_suite='MulticoreTSNE.tests',
+        tests_require=['MulticoreTSNE[test]']
     )
