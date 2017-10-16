@@ -38,5 +38,10 @@ class TestMulticoreTSNE(unittest.TestCase):
 
     def test_n_jobs(self):
         X, y = self.Xy
-        tsne = MulticoreTSNE(perplexity=5, n_iter=100, n_jobs=-2)
+        tsne = MulticoreTSNE(n_iter=100, n_jobs=-2)
+        tsne.fit_transform(X)
+
+    def test_perplexity(self):
+        X, y = self.Xy
+        tsne = MulticoreTSNE(perplexity=X.shape[0], n_iter=100)
         tsne.fit_transform(X)

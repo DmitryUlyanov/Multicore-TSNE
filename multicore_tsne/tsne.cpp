@@ -44,8 +44,8 @@ void TSNE::run(double* X, int N, int D, double* Y,
                int num_threads = 1, int max_iter = 1000, int random_state = 0) {
 
     if (N - 1 < 3 * perplexity) {
-        printf("Perplexity too large for the number of data points!\n");
-        exit(1);
+        perplexity = (N - 1) / 3;
+        printf("Perplexity too large for the number of data points! Adjusting ...\n");
     }
 
 #ifdef _OPENMP
