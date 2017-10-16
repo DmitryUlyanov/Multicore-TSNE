@@ -1,1 +1,4 @@
 *.gz
+
+# cmake directories
+multicore_tsne/*/*
