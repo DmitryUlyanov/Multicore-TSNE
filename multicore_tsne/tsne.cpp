@@ -32,7 +32,9 @@ static const int QT_NO_DIMS = 2;
 // D -- input dimentionality
 // Y -- array to fill with the result of size [N, no_dims]
 // no_dims -- target dimentionality
-void TSNE::run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state) {
+void TSNE::run(double* X, int N, int D, double* Y,
+               int no_dims = 2, double perplexity = 30, double theta = .5,
+               int num_threads = 1, int max_iter = 1000, int random_state = 0) {
 
     if (N - 1 < 3 * perplexity) {
         printf("Perplexity too large for the number of data points!\n");
@@ -498,10 +500,12 @@ double TSNE::randn() {
 
 extern "C"
 {
-    extern void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int _num_threads, int max_iter, int random_state)
+    extern void tsne_run_double(double* X, int N, int D, double* Y,
+                                int no_dims = 2, double perplexity = 30, double theta = .5,
+                                int num_threads = 1, int max_iter = 1000, int random_state = -1)
     {
-        printf("Performing t-SNE using %d cores.\n", _num_threads);
+        printf("Performing t-SNE using %d cores.\n", num_threads);
         TSNE tsne;
-        tsne.run(X, N, D, Y, no_dims, perplexity, theta, _num_threads, max_iter, random_state);
+        tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state);
     }
 }
