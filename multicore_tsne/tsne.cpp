@@ -25,6 +25,13 @@
 #include "tsne.h"
 
 
+#ifdef _OPENMP
+    #define NUM_THREADS(N) ((N) >= 0 ? (N) : omp_get_num_procs() + (N) + 1)
+#else
+    #define NUM_THREADS(N) (1)
+#endif
+
+
 static const int QT_NO_DIMS = 2;
 
 // Perform t-SNE
@@ -42,7 +49,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
     }
 
 #ifdef _OPENMP
-    omp_set_num_threads(_num_threads);
+    omp_set_num_threads(NUM_THREADS(num_threads));
     omp_set_schedule(omp_sched_guided, 0);
 #endif
 
@@ -504,7 +511,7 @@ extern "C"
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
                                 int num_threads = 1, int max_iter = 1000, int random_state = -1)
     {
-        printf("Performing t-SNE using %d cores.\n", num_threads);
+        printf("Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
         TSNE tsne;
         tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state);
     }

@@ -1,7 +1,6 @@
 from __future__ import print_function
 import numpy as np
 import cffi
-import psutil
 import threading
 import os
 import sys
@@ -67,11 +66,6 @@ class MulticoreTSNE:
 
         assert X.ndim == 2, 'X should be 2D array.'
         assert X.dtype == np.float64, 'Only double arrays are supported for now. Use .astype(np.float64) to convert.'
-        
-        if self.n_jobs == -1:
-            self.n_jobs = psutil.cpu_count()
-
-        assert self.n_jobs > 0, 'Wrong n_jobs parameter.'
         
         if (X.flags['C_CONTIGUOUS'] is False):
         	print('Converting input to contiguous array...')

@@ -61,7 +61,6 @@ if __name__ == '__main__':
         url='https://github.com/DmitryUlyanov/Multicore-TSNE',
         install_requires=[
             'numpy',
-            'psutil',
             'cffi'
         ],
         packages=find_packages(),

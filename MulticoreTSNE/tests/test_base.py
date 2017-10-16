@@ -18,8 +18,12 @@ def pdist(X):
 
 
 class TestMulticoreTSNE(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.Xy = make_blobs(20, 100, 2, shuffle=False)
+
     def test_tsne(self):
-        X, y = make_blobs(20, 100, 2, shuffle=False)
+        X, y = self.Xy
         tsne = MulticoreTSNE(perplexity=5, n_iter=500, random_state=0)
         E = tsne.fit_transform(X)
 
@@ -31,3 +35,8 @@ class TestMulticoreTSNE(unittest.TestCase):
                                               E[y == 1]).min()
 
         self.assertGreater(min_intercluster, max_intracluster)
+
+    def test_n_jobs(self):
+        X, y = self.Xy
+        tsne = MulticoreTSNE(perplexity=5, n_iter=100, n_jobs=-2)
+        tsne.fit_transform(X)
