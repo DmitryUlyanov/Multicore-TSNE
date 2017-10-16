@@ -41,7 +41,8 @@ static const int QT_NO_DIMS = 2;
 // no_dims -- target dimentionality
 void TSNE::run(double* X, int N, int D, double* Y,
                int no_dims = 2, double perplexity = 30, double theta = .5,
-               int num_threads = 1, int max_iter = 1000, int random_state = 0) {
+               int num_threads = 1, int max_iter = 1000, int random_state = 0,
+               bool init_from_Y = false) {
 
     if (N - 1 < 3 * perplexity) {
         perplexity = (N - 1) / 3;
@@ -109,12 +110,17 @@ void TSNE::run(double* X, int N, int D, double* Y,
         val_P[i] *= 12.0;
     }
 
-    // Initialize solution (randomly)
-    if (random_state != -1) {
-        srand(random_state);
+    // Initialize solution (randomly), unless Y is already initialized
+    if (init_from_Y) {
+        stop_lying_iter = 0;  // Immediately stop lying. Passed Y is close to the true solution.
     }
-    for (int i = 0; i < N * no_dims; i++) {
-        Y[i] = randn() * .0001;
+    else {
+        if (random_state != -1) {
+            srand(random_state);
+        }
+        for (int i = 0; i < N * no_dims; i++) {
+            Y[i] = randn();
+        }
     }
 
     // Perform main training loop
@@ -509,10 +515,11 @@ extern "C"
 {
     extern void tsne_run_double(double* X, int N, int D, double* Y,
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
-                                int num_threads = 1, int max_iter = 1000, int random_state = -1)
+                                int num_threads = 1, int max_iter = 1000, int random_state = -1,
+                                bool init_from_Y = false)
     {
         printf("Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
         TSNE tsne;
-        tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state);
+        tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state, init_from_Y);
     }
 }

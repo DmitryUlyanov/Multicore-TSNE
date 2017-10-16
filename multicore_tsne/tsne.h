@@ -19,7 +19,7 @@ static inline double sign(double x) { return (x == .0 ? .0 : (x < .0 ? -1.0 : 1.
 class TSNE
 {
 public:
-    void run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int num_threads, int max_iter, int random_state);
+    void run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int num_threads, int max_iter, int random_state, bool init_from_Y);
     bool load_data(double** data, int* n, int* d, double* theta, double* perplexity);
     void save_data(double* data, int* landmarks, double* costs, int n, int d);
     void symmetrizeMatrix(int** row_P, int** col_P, double** val_P, int N);

@@ -52,12 +52,19 @@ class MulticoreTSNE:
         self.n_iter = n_iter
         self.n_jobs = n_jobs
         self.random_state = -1 if random_state is None else random_state
+        self.init = init
 
         assert n_components == 2, 'n_components should be 2'
 
+        assert isinstance(init, np.ndarray) or init == 'random', "init must be 'random' or array"
+        if isinstance(init, np.ndarray):
+            assert init.ndim == 2, "init array must be 2D"
+            assert init.shape[1] == n_components, "init array must be of shape (n_instances, n_components)"
+            self.init = np.ascontiguousarray(init, float)
+
         self.ffi = cffi.FFI()
         self.ffi.cdef(
-            "void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int num_threads, int max_iter, int random_state);")
+            "void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int num_threads, int max_iter, int random_state, bool init_from_Y);")
 
         path = os.path.dirname(os.path.realpath(__file__))
         self.C = self.ffi.dlopen(path + "/libtsne_multicore.so")
@@ -70,7 +77,12 @@ class MulticoreTSNE:
         X = np.array(X, dtype=float, order='C', copy=True)
 
         N, D = X.shape
-        Y = np.zeros((N, self.n_components))
+        init_from_Y = isinstance(self.init, np.ndarray)
+        if init_from_Y:
+            Y = self.init.copy('C')
+            assert X.shape[0] == Y.shape[0], "n_instances in init array and X must match"
+        else:
+            Y = np.zeros((N, self.n_components))
 
         cffi_X = self.ffi.cast('double*', X.ctypes.data)
         cffi_Y = self.ffi.cast('double*', Y.ctypes.data)
@@ -78,7 +90,7 @@ class MulticoreTSNE:
         t = FuncThread(self.C.tsne_run_double,
                        cffi_X, N, D,
                        cffi_Y, self.n_components,
-                       self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state)
+                       self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state, init_from_Y)
         t.daemon = True
         t.start()
 

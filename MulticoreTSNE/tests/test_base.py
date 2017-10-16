@@ -10,6 +10,7 @@ from MulticoreTSNE import MulticoreTSNE
 
 
 make_blobs = partial(make_blobs, random_state=0)
+MulticoreTSNE = partial(MulticoreTSNE, random_state=0)
 
 
 def pdist(X):
@@ -24,7 +25,7 @@ class TestMulticoreTSNE(unittest.TestCase):
 
     def test_tsne(self):
         X, y = self.Xy
-        tsne = MulticoreTSNE(perplexity=5, n_iter=500, random_state=0)
+        tsne = MulticoreTSNE(perplexity=5, n_iter=500)
         E = tsne.fit_transform(X)
 
         self.assertEqual(E.shape, (X.shape[0], 2))
@@ -51,4 +52,18 @@ class TestMulticoreTSNE(unittest.TestCase):
         X_orig = X.copy()
         MulticoreTSNE(n_iter=400).fit_transform(X)
         np.testing.assert_array_equal(X, X_orig)
+
+    def test_init_from_y(self):
+        X, y = self.Xy
+        tsne = MulticoreTSNE(n_iter=500)
+        E = tsne.fit_transform(X)
+
+        tsne = MulticoreTSNE(n_iter=0, init=E)
+        E2 = tsne.fit_transform(X)
+        np.testing.assert_allclose(E, E2)
+
+        tsne = MulticoreTSNE(n_iter=1, init=E)
+        E2 = tsne.fit_transform(X)
+        mean_diff = np.abs((E - E2).sum(1)).mean()
+        self.assertLess(mean_diff, 20)
 
