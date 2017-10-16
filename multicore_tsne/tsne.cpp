@@ -160,7 +160,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
         // Print out progress
         if (verbose && ((iter > 0 && iter % 50 == 0) || (iter == max_iter - 1))) {
             end = time(0);
-            double C = .0;
+            double C;
 
             C = evaluateError(row_P, col_P, val_P, Y, N, theta);  // doing approximate computation here!
 
@@ -458,7 +458,7 @@ void TSNE::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) 
             }
 
             // Update offsets
-            if (!present || (present && n <= col_P[i])) {
+            if (!present || (n <= col_P[i])) {
                 offset[n]++;
                 if (col_P[i] != n) offset[col_P[i]]++;
             }
@@ -506,15 +506,14 @@ void TSNE::zeroMean(double* X, int N, int D) {
 
 // Generates a Gaussian random number
 double TSNE::randn() {
-    double x, y, radius;
+    double x, radius;
     do {
         x = 2 * (rand() / ((double) RAND_MAX + 1)) - 1;
-        y = 2 * (rand() / ((double) RAND_MAX + 1)) - 1;
+        double y = 2 * (rand() / ((double) RAND_MAX + 1)) - 1;
         radius = (x * x) + (y * y);
     } while ((radius >= 1.0) || (radius == 0.0));
     radius = sqrt(-2 * log(radius) / radius);
     x *= radius;
-    y *= radius;
     return x;
 }
 

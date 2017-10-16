@@ -98,6 +98,7 @@ void QuadTree::init(QuadTree* inp_parent, double* inp_data, double inp_x, double
     northEast = NULL;
     southWest = NULL;
     southEast = NULL;
+    index[0] = 0;
     for (int i = 0; i < QT_NO_DIMS; i++) {
         center_of_mass[i] = .0;
     }
@@ -180,6 +181,10 @@ bool QuadTree::insert(int new_index)
 void QuadTree::subdivide() {
 
     // Create four children
+    delete northWest;
+    delete northEast;
+    delete southWest;
+    delete southEast;
     northWest = new QuadTree(this, data, boundary.x - .5 * boundary.hw, boundary.y - .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
     northEast = new QuadTree(this, data, boundary.x + .5 * boundary.hw, boundary.y - .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
     southWest = new QuadTree(this, data, boundary.x - .5 * boundary.hw, boundary.y + .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
@@ -187,8 +192,7 @@ void QuadTree::subdivide() {
 
     // Move existing points to correct children
     for (int i = 0; i < size; i++) {
-        bool success = false;
-        if (!success) success = northWest->insert(index[i]);
+        bool          success = northWest->insert(index[i]);
         if (!success) success = northEast->insert(index[i]);
         if (!success) success = southWest->insert(index[i]);
         if (!success) success = southEast->insert(index[i]);
@@ -342,17 +346,16 @@ void QuadTree::computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, d
 {
 
     // Loop over all edges in the graph
-    int ind1, ind2;
     double D;
     double buff[QT_NO_DIMS];
 
     for (int n = 0; n < N; n++) {
-        ind1 = n * QT_NO_DIMS;
+        int ind1 = n * QT_NO_DIMS;
         for (int i = row_P[n]; i < row_P[n + 1]; i++) {
 
             // Compute pairwise distance and Q-value
             D = .0;
-            ind2 = col_P[i] * QT_NO_DIMS;
+            int ind2 = col_P[i] * QT_NO_DIMS;
             for (int d = 0; d < QT_NO_DIMS; d++) {
                 buff[d]  = data[ind1 + d];
                 buff[d] -= data[ind2 + d];

@@ -154,7 +154,7 @@ private:
     struct DistanceComparator
     {
         const T& item;
-        DistanceComparator(const T& item) : item(item) {}
+        explicit DistanceComparator(const T& item) : item(item) {}
         bool operator()(const T& a, const T& b) {
             return distance(item, a) < distance(item, b);
         }
