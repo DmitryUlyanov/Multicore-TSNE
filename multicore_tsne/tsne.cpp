@@ -42,7 +42,8 @@ static const int QT_NO_DIMS = 2;
 void TSNE::run(double* X, int N, int D, double* Y,
                int no_dims = 2, double perplexity = 30, double theta = .5,
                int num_threads = 1, int max_iter = 1000, int random_state = 0,
-               bool init_from_Y = false, int verbose = 0) {
+               bool init_from_Y = false, int verbose = 0,
+               double early_exaggeration = 12, double learning_rate = 200) {
 
     if (N - 1 < 3 * perplexity) {
         perplexity = (N - 1) / 3;
@@ -63,7 +64,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
     time_t start, end;
     int stop_lying_iter = 250, mom_switch_iter = 250;
     double momentum = .5, final_momentum = .8;
-    double eta = 200.0;
+    double eta = learning_rate;
 
     // Allocate some memory
     double* dY    = (double*) malloc(N * no_dims * sizeof(double));
@@ -112,7 +113,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
 
     // Lie about the P-values
     for (int i = 0; i < row_P[N]; i++) {
-        val_P[i] *= 12.0;
+        val_P[i] *= early_exaggeration;
     }
 
     // Initialize solution (randomly), unless Y is already initialized
@@ -150,7 +151,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
         // Stop lying about the P-values after a while, and switch momentum
         if (iter == stop_lying_iter) {
             for (int i = 0; i < row_P[N]; i++) {
-                val_P[i] /= 12.0;
+                val_P[i] /= early_exaggeration;
             }
         }
         if (iter == mom_switch_iter) {
@@ -522,11 +523,13 @@ extern "C"
     extern void tsne_run_double(double* X, int N, int D, double* Y,
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
                                 int num_threads = 1, int max_iter = 1000, int random_state = -1,
-                                bool init_from_Y = false, int verbose = 0)
+                                bool init_from_Y = false, int verbose = 0,
+                                double early_exaggeration = 12, double learning_rate = 200)
     {
         if (verbose)
             fprintf(stderr, "Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
         TSNE tsne;
-        tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state, init_from_Y, verbose);
+        tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
+                 init_from_Y, verbose, early_exaggeration, learning_rate);
     }
 }

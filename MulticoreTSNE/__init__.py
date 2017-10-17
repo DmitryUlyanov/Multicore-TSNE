@@ -36,8 +36,8 @@ class MulticoreTSNE:
     def __init__(self,
                  n_components=2,
                  perplexity=30.0,
-                 early_exaggeration=4.0,
-                 learning_rate=1000.0,
+                 early_exaggeration=12,
+                 learning_rate=200,
                  n_iter=1000,
                  n_iter_without_progress=30,
                  min_grad_norm=1e-07,
@@ -51,6 +51,8 @@ class MulticoreTSNE:
         self.n_components = n_components
         self.angle = angle
         self.perplexity = perplexity
+        self.early_exaggeration = early_exaggeration
+        self.learning_rate = learning_rate
         self.n_iter = n_iter
         self.n_jobs = n_jobs
         self.random_state = -1 if random_state is None else random_state
@@ -68,7 +70,11 @@ class MulticoreTSNE:
 
         self.ffi = cffi.FFI()
         self.ffi.cdef(
-            "void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int num_threads, int max_iter, int random_state, bool init_from_Y, int verbose);")
+            """void tsne_run_double(double* X, int N, int D, double* Y,
+                                    int no_dims, double perplexity, double theta,
+                                    int num_threads, int max_iter, int random_state,
+                                    bool init_from_Y, int verbose,
+                                    double early_exaggeration, double learning_rate);""")
 
         path = os.path.dirname(os.path.realpath(__file__))
         try:
@@ -104,7 +110,7 @@ class MulticoreTSNE:
                        cffi_X, N, D,
                        cffi_Y, self.n_components,
                        self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state,
-                       init_from_Y, self.verbose)
+                       init_from_Y, self.verbose, self.early_exaggeration, self.learning_rate)
         t.daemon = True
         t.start()
 
