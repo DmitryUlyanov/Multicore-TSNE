@@ -1,9 +1,11 @@
 from __future__ import print_function
-import numpy as np
-import cffi
+from glob import glob
 import threading
 import os
 import sys
+
+import numpy as np
+import cffi
 
 '''
     Helper class to execute TSNE in separate thread.
@@ -69,7 +71,12 @@ class MulticoreTSNE:
             "void tsne_run_double(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int num_threads, int max_iter, int random_state, bool init_from_Y, int verbose);")
 
         path = os.path.dirname(os.path.realpath(__file__))
-        self.C = self.ffi.dlopen(path + "/libtsne_multicore.so")
+        try:
+            sofile = (glob(os.path.join(path, 'libtsne*.so')) +
+                      glob(os.path.join(path, 'libtsne*.dll')))[0]
+            self.C = self.ffi.dlopen(os.path.join(path, sofile))
+        except (IndexError, OSError):
+            raise RuntimeError('Cannot find/open tsne_multicore shared library')
 
     def fit(self, X, y=None):
         self.fit_transform(X, y)
