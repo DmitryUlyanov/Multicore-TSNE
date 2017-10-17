@@ -23,16 +23,21 @@ class FuncThread(threading.Thread):
 
 
 class MulticoreTSNE:
-    '''
-        Only
-            - n_components
-            - perplexity
-            - angle
-            - n_iter
-        parameters are used.
-        Other are left for compatibility with sklearn TSNE.
-    '''
+    """
+    Compute t-SNE embedding using Barnes-Hut optimization and
+    multiple cores (if avaialble).
 
+    Parameters mostly correspond to parameters of `sklearn.manifold.TSNE`.
+
+    The following parameters are unused:
+    * n_iter_without_progress
+    * min_grad_norm
+    * metric
+    * method
+
+    Parameter `init` doesn't support 'pca' initialization, but a precomputed
+    array can be passed.
+    """
     def __init__(self,
                  n_components=2,
                  perplexity=30.0,
