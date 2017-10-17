@@ -43,7 +43,8 @@ void TSNE::run(double* X, int N, int D, double* Y,
                int no_dims = 2, double perplexity = 30, double theta = .5,
                int num_threads = 1, int max_iter = 1000, int random_state = 0,
                bool init_from_Y = false, int verbose = 0,
-               double early_exaggeration = 12, double learning_rate = 200) {
+               double early_exaggeration = 12, double learning_rate = 200,
+               double *final_error = NULL) {
 
     if (N - 1 < 3 * perplexity) {
         perplexity = (N - 1) / 3;
@@ -175,6 +176,9 @@ void TSNE::run(double* X, int N, int D, double* Y,
         }
     }
     end = time(0); total_time += (float) (end - start) ;
+
+    if (final_error != NULL)
+        *final_error = evaluateError(row_P, col_P, val_P, Y, N, theta);
 
     // Clean up memory
     free(dY);
@@ -524,12 +528,13 @@ extern "C"
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
                                 int num_threads = 1, int max_iter = 1000, int random_state = -1,
                                 bool init_from_Y = false, int verbose = 0,
-                                double early_exaggeration = 12, double learning_rate = 200)
+                                double early_exaggeration = 12, double learning_rate = 200,
+                                double *final_error = NULL)
     {
         if (verbose)
             fprintf(stderr, "Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
         TSNE tsne;
         tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
-                 init_from_Y, verbose, early_exaggeration, learning_rate);
+                 init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
     }
 }

@@ -67,3 +67,12 @@ class TestMulticoreTSNE(unittest.TestCase):
         mean_diff = np.abs((E - E2).sum(1)).mean()
         self.assertLess(mean_diff, 20)
 
+    def test_attributes(self):
+        X, y = self.Xy
+        N_ITER = 200
+        tsne = MulticoreTSNE(n_iter=N_ITER)
+        E = tsne.fit_transform(X, y)
+
+        self.assertIs(tsne.embedding_, E)
+        self.assertGreater(tsne.kl_divergence_, 0)
+        self.assertEqual(tsne.n_iter_, N_ITER)

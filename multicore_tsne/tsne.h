@@ -21,7 +21,7 @@ class TSNE
 public:
     void run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta,
              int num_threads, int max_iter, int random_state, bool init_from_Y, int verbose,
-             double early_exaggeration, double learning_rate);
+             double early_exaggeration, double learning_rate, double *final_error);
     bool load_data(double** data, int* n, int* d, double* theta, double* perplexity);
     void save_data(double* data, int* landmarks, double* costs, int n, int d);
     void symmetrizeMatrix(int** row_P, int** col_P, double** val_P, int N);

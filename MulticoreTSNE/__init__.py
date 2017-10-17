@@ -58,6 +58,8 @@ class MulticoreTSNE:
         self.random_state = -1 if random_state is None else random_state
         self.init = init
         self.embedding_ = None
+        self.n_iter_ = None
+        self.kl_divergence_ = None
         self.verbose = int(verbose)
 
         assert n_components == 2, 'n_components should be 2'
@@ -74,7 +76,8 @@ class MulticoreTSNE:
                                     int no_dims, double perplexity, double theta,
                                     int num_threads, int max_iter, int random_state,
                                     bool init_from_Y, int verbose,
-                                    double early_exaggeration, double learning_rate);""")
+                                    double early_exaggeration, double learning_rate,
+                                    double *final_error);""")
 
         path = os.path.dirname(os.path.realpath(__file__))
         try:
@@ -105,12 +108,15 @@ class MulticoreTSNE:
 
         cffi_X = self.ffi.cast('double*', X.ctypes.data)
         cffi_Y = self.ffi.cast('double*', Y.ctypes.data)
+        final_error = np.array(0, dtype=float)
+        cffi_final_error = self.ffi.cast('double*', final_error.ctypes.data)
 
         t = FuncThread(self.C.tsne_run_double,
                        cffi_X, N, D,
                        cffi_Y, self.n_components,
                        self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state,
-                       init_from_Y, self.verbose, self.early_exaggeration, self.learning_rate)
+                       init_from_Y, self.verbose, self.early_exaggeration, self.learning_rate,
+                       cffi_final_error)
         t.daemon = True
         t.start()
 
@@ -119,5 +125,7 @@ class MulticoreTSNE:
             sys.stdout.flush()
 
         self.embedding_ = Y
+        self.kl_divergence_ = final_error
+        self.n_iter_ = self.n_iter
 
         return Y
