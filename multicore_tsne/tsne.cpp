@@ -169,7 +169,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
                 fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, C);
             else {
                 total_time += (float) (end - start);
-                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter, C, (float) (end - start) );
+                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, C, (float) (end - start) );
             }
             start = time(0);
         }
