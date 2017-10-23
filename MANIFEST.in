@@ -1,1 +1,1 @@
-include python/libtsne_multicore.so
+include MulticoreTSNE/libtsne_multicore.so

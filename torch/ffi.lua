@@ -7,7 +7,7 @@ defs = [[
 
 void tsne_run_double(double* X, int N, int D, 
                      double* Y, int no_dims, 
-                     double perplexity, double theta, int _num_threads, int max_iter);
+                     double perplexity, double theta, int num_threads, int max_iter);
 
 ]]
 

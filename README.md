@@ -92,7 +92,7 @@ Only double arrays are supported for now. For this implementation `n_components`
 You can test it on MNIST dataset with the following command:
 
 ```
-python python/tests/test.py <n_jobs>
+python MulticoreTSNE/examples/test.py <n_jobs>
 ```
 
 #### Note on jupyter use

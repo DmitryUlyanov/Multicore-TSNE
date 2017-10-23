@@ -1,0 +1,39 @@
+language: python
+dist: trusty
+sudo: false
+
+cache:
+  apt: true
+  pip: true
+  ccache: true
+
+addons:
+  apt:
+    packages:
+      - cppcheck
+
+matrix:
+  include:
+    - os: osx
+      language: generic
+      before_install:
+        - brew update
+        - brew install python3
+        - virtualenv env -p python3
+        - source env/bin/activate
+    - python: 2.7
+    - python: 3.6
+
+before_install:
+  - set -e
+  - command -v cppcheck >/dev/null &&
+    cppcheck --enable=all --error-exitcode=1 multicore_tsne/*.{h,c,cpp}
+
+install:
+  - pip install .[test]
+
+script:
+  - cd ..; python -m unittest discover -v MulticoreTSNE.tests; cd -
+
+after_success:
+  -
