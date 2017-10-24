@@ -87,7 +87,7 @@ class MulticoreTSNE:
         path = os.path.dirname(os.path.realpath(__file__))
         try:
             sofile = (glob(os.path.join(path, 'libtsne*.so')) +
-                      glob(os.path.join(path, 'libtsne*.dll')))[0]
+                      glob(os.path.join(path, '*tsne*.dll')))[0]
             self.C = self.ffi.dlopen(os.path.join(path, sofile))
         except (IndexError, OSError):
             raise RuntimeError('Cannot find/open tsne_multicore shared library')

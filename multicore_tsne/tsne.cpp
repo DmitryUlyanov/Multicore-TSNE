@@ -524,6 +524,9 @@ double TSNE::randn() {
 
 extern "C"
 {
+    #ifdef _WIN32
+    __declspec(dllexport)
+    #endif
     extern void tsne_run_double(double* X, int N, int D, double* Y,
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
                                 int num_threads = 1, int max_iter = 1000, int random_state = -1,

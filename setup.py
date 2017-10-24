@@ -39,11 +39,14 @@ class CMakeBuild(build_ext):
                          '-DCMAKE_BUILD_TYPE={}'.format('Debug' if self.debug else 'Release'),
                          '-DCMAKE_VERBOSE_MAKEFILE={}'.format(int(self.verbose)),
                          "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY='{}'".format(EXT_DIR),
+                         # set Debug and Release paths to the output directory on Windows
+                         "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG='{}'".format(EXT_DIR),
+                         "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE='{}'".format(EXT_DIR),
                          SOURCE_DIR], cwd=BUILD_TEMP):
             sys.exit('\nERROR: Cannot generate Makefile. See above errors.')
 
         # Run make
-        if 0 != execute('cmake --build . -- -j4', shell=True, cwd=BUILD_TEMP):
+        if 0 != execute('cmake --build .', shell=True, cwd=BUILD_TEMP):
             sys.exit('\nERROR: Cannot find make? See above errors.')
 
 
