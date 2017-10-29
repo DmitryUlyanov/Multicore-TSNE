@@ -61,8 +61,7 @@ def plot(Y, classes, name):
 
 mnist, classes = get_mnist()
 
-tsne = TSNE(n_components=2, random_state=0, n_iter_without_progress = 1000, min_error_diff=0, min_grad_norm=0,min_gain=0, verbose=1000)
-
+tsne = TSNE(n_components=2, random_state=0, n_iter = 1000, min_grad_norm=0, verbose=1000)
 
 time1 = time.time()
 mnist_tsne = tsne.fit_transform(mnist)
