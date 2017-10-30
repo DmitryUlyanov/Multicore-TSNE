@@ -16,6 +16,7 @@ matrix:
   include:
     - os: osx
       language: generic
+      compiler: clang
       before_install:
         - brew update
         - brew install python3
@@ -31,6 +32,7 @@ before_install:
 
 install:
   - pip install .[test]
+  - pip install -U -v --no-deps .
 
 script:
   - cd ..; python -m unittest discover -v MulticoreTSNE.tests; cd -
