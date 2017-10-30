@@ -54,7 +54,9 @@ void TSNE::run(double* X, int N, int D, double* Y,
 
 #ifdef _OPENMP
     omp_set_num_threads(NUM_THREADS(num_threads));
+#if _OPENMP >= 200805
     omp_set_schedule(omp_sched_guided, 0);
+#endif
 #endif
 
     if (verbose)
