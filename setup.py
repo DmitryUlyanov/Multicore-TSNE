@@ -20,6 +20,15 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_ext):
+    user_options = build_ext.user_options
+    user_options.extend([
+        ('cmake-args=', None, 'extra CMake arguments passed on the cmake command line'),
+    ])
+
+    def initialize_options(self):
+        self.cmake_args = None
+        build_ext.initialize_options(self)
+
     def run(self):
         if 0 != os.system('cmake --version'):
             sys.exit('\nError: Cannot find cmake. Install cmake, e.g. `pip install cmake`.')
@@ -35,18 +44,25 @@ class CMakeBuild(build_ext):
         os.makedirs(BUILD_TEMP)
 
         # Run cmake
+        build_type = 'Debug' if self.debug else 'Release'
         if 0 != execute(['cmake',
-                         '-DCMAKE_BUILD_TYPE={}'.format('Debug' if self.debug else 'Release'),
+                         '-DCMAKE_BUILD_TYPE={}'.format(build_type),
                          '-DCMAKE_VERBOSE_MAKEFILE={}'.format(int(self.verbose)),
                          "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY='{}'".format(EXT_DIR),
                          # set Debug and Release paths to the output directory on Windows
                          "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG='{}'".format(EXT_DIR),
                          "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE='{}'".format(EXT_DIR),
+                         self.cmake_args or "--",
                          SOURCE_DIR], cwd=BUILD_TEMP):
             sys.exit('\nERROR: Cannot generate Makefile. See above errors.')
 
         # Run make
-        if 0 != execute('cmake --build .', shell=True, cwd=BUILD_TEMP):
+        cmd = 'cmake --build .'
+        # For MSVC specify build type at build time
+        # https://stackoverflow.com/q/24460486/1925996
+        if sys.platform.startswith('win'):
+            cmd += ' --config ' + build_type
+        if 0 != execute(cmd, shell=True, cwd=BUILD_TEMP):
             sys.exit('\nERROR: Cannot find make? See above errors.')
 
 

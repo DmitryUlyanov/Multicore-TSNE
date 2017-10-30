@@ -25,7 +25,7 @@ class TestMulticoreTSNE(unittest.TestCase):
 
     def test_tsne(self):
         X, y = self.Xy
-        tsne = MulticoreTSNE(perplexity=5, n_iter=500)
+        tsne = MulticoreTSNE(perplexity=10, n_iter=500)
         E = tsne.fit_transform(X)
 
         self.assertEqual(E.shape, (X.shape[0], 2))
@@ -65,7 +65,7 @@ class TestMulticoreTSNE(unittest.TestCase):
         tsne = MulticoreTSNE(n_iter=1, init=E)
         E2 = tsne.fit_transform(X)
         mean_diff = np.abs((E - E2).sum(1)).mean()
-        self.assertLess(mean_diff, 20)
+        self.assertLess(mean_diff, 30)
 
     def test_attributes(self):
         X, y = self.Xy
