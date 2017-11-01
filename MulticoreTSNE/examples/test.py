@@ -63,7 +63,7 @@ def plot(Y, classes, name):
 
 mnist, classes = get_mnist()
 
-tsne = TSNE(n_jobs=int(sys.argv[1]))
+tsne = TSNE(n_jobs=int(sys.argv[1]), verbose=1)
 mnist_tsne = tsne.fit_transform(mnist)
 
 plot(mnist_tsne, classes, 'tsne_' + sys.argv[1] + 'core.png')
