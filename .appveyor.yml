@@ -17,6 +17,9 @@ environment:
       EXTRA_CMAKE_ARGS: -DCMAKE_GENERATOR_PLATFORM=x64
       WHEEL_PLATFORM: win_amd64
 
+  TWINE_USERNAME: placeholder
+  TWINE_PASSWORD: secret
+
 install:
   # Install dependencies
   - set "PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%"
@@ -40,3 +43,7 @@ test_script:
 artifacts:
   - path: 'dist\*.whl'
     name: wheel
+
+on_success:
+  - python -m pip install twine
+  - if "%APPVEYOR_REPO_TAG%"=="true" python -m twine upload --skip-existing %wheel%
