@@ -8,21 +8,27 @@
  *  Multicore version by Dmitry Ulyanov, 2016. dmitry.ulyanov.msu@gmail.com
  */
 
+#include <cstdlib>
+#include <vector>
+
 #ifndef QUADTREE_H
 #define QUADTREE_H
 
-
 static inline double min(double x, double y) { return (x <= y ? x : y); }
 static inline double max(double x, double y) { return (x <= y ? y : x); }
+static inline double abs_d(double x) { return (x <= 0 ? -x : x); }
 
 class Cell {
 
 public:
-	double x;
-	double y;
-	double hw;
-	double hh;
+	double* center;
+	double* width;
+	int n_dims;
 	bool   containsPoint(double point[]);
+	~Cell() {
+		delete[] center;
+		delete[] width;
+	}
 };
 
 
@@ -30,12 +36,10 @@ class QuadTree
 {
 
 	// Fixed constants
-	static const int QT_NO_DIMS = 2;
 	static const int QT_NODE_CAPACITY = 1;
 
-
 	// Properties of this node in the tree
-	QuadTree* parent;
+	int QT_NO_DIMS;
 	bool is_leaf;
 	int size;
 	int cum_size;
@@ -45,40 +49,27 @@ class QuadTree
 
 	// Indices in this quad tree node, corresponding center-of-mass, and list of all children
 	double* data;
-	double center_of_mass[QT_NO_DIMS];
+	double* center_of_mass;
 	int index[QT_NODE_CAPACITY];
 
-	// Children
-	QuadTree* northWest;
-	QuadTree* northEast;
-	QuadTree* southWest;
-	QuadTree* southEast;
-
+	int num_children;
+	std::vector<QuadTree*> children;
 public:
-	QuadTree(double* inp_data, int N);
-	QuadTree(double* inp_data, double inp_x, double inp_y, double inp_hw, double inp_hh);
-	QuadTree(double* inp_data, int N, double inp_x, double inp_y, double inp_hw, double inp_hh);
-	QuadTree(QuadTree* inp_parent, double* inp_data, int N, double inp_x, double inp_y, double inp_hw, double inp_hh);
-	QuadTree(QuadTree* inp_parent, double* inp_data, double inp_x, double inp_y, double inp_hw, double inp_hh);
+	
+
+	QuadTree(double* inp_data, int N, int no_dims);
+	QuadTree(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);
 	~QuadTree();
-	void setData(double* inp_data);
-	QuadTree* getParent();
 	void construct(Cell boundary);
 	bool insert(int new_index);
 	void subdivide();
-	bool isCorrect();
-	void rebuildTree();
-	void getAllIndices(int* indices);
-	int getDepth();
-	void computeNonEdgeForces(int point_index, double theta, double neg_f[], double* sum_Q, double buff[]);
+	void computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q);
 	void computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, double* pos_f);
-	void print();
 
 private:
-	void init(QuadTree* inp_parent, double* inp_data, double inp_x, double inp_y, double inp_hw, double inp_hh);
+	
+	void init(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);
 	void fill(int N);
-	int getAllIndices(int* indices, int loc);
-	bool isChild(int test_index, int start, int end);
 };
 
 #endif
