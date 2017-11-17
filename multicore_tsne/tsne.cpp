@@ -32,13 +32,13 @@
 #endif
 
 
-static const int QT_NO_DIMS = 2;
-
-// Perform t-SNE
-// X -- double matrix of size [N, D]
-// D -- input dimensionality
-// Y -- array to fill with the result of size [N, no_dims]
-// no_dims -- target dimentionality
+/*  
+    Perform t-SNE
+        X -- double matrix of size [N, D]
+        D -- input dimensionality
+        Y -- array to fill with the result of size [N, no_dims]
+        no_dims -- target dimentionality
+*/
 void TSNE::run(double* X, int N, int D, double* Y,
                int no_dims = 2, double perplexity = 30, double theta = .5,
                int num_threads = 1, int max_iter = 1000, int random_state = 0,
@@ -58,6 +58,12 @@ void TSNE::run(double* X, int N, int D, double* Y,
     omp_set_schedule(omp_sched_guided, 0);
 #endif
 #endif
+
+    /* 
+        ======================
+            Step 1
+        ======================
+    */
 
     if (verbose)
         fprintf(stderr, "Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
@@ -112,7 +118,12 @@ void TSNE::run(double* X, int N, int D, double* Y,
     if (verbose)
         fprintf(stderr, "Done in %4.2f seconds (sparsity = %f)!\nLearning embedding...\n", (float)(end - start) , (double) row_P[N] / ((double) N * (double) N));
 
-    // Step 2
+    /* 
+        ======================
+            Step 2
+        ======================
+    */
+
 
     // Lie about the P-values
     for (int i = 0; i < row_P[N]; i++) {
@@ -138,7 +149,6 @@ void TSNE::run(double* X, int N, int D, double* Y,
 
         // Compute approximate gradient
         computeGradient(row_P, col_P, val_P, Y, N, no_dims, dY, theta);
-
         for (int i = 0; i < N * no_dims; i++) {
             // Update gains
             gains[i] = (sign(dY[i]) != sign(uY[i])) ? (gains[i] + .2) : (gains[i] * .8 + .01);
@@ -166,7 +176,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
             end = time(0);
             double C;
 
-            C = evaluateError(row_P, col_P, val_P, Y, N, theta);  // doing approximate computation here!
+            C = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);  // doing approximate computation here!
 
             if (iter == 0)
                 fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, C);
@@ -176,11 +186,12 @@ void TSNE::run(double* X, int N, int D, double* Y,
             }
             start = time(0);
         }
+
     }
     end = time(0); total_time += (float) (end - start) ;
 
     if (final_error != NULL)
-        *final_error = evaluateError(row_P, col_P, val_P, Y, N, theta);
+        *final_error = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);
 
     // Clean up memory
     free(dY);
@@ -197,71 +208,72 @@ void TSNE::run(double* X, int N, int D, double* Y,
 
 
 // Compute gradient of the t-SNE cost function (using Barnes-Hut algorithm)
-void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int D, double* dC, double theta)
+void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta)
 {
-
     // Construct quadtree on current map
-    QuadTree* tree = new QuadTree(Y, N);
-
+    QuadTree* tree = new QuadTree(Y, N, no_dims);
+    
     // Compute all terms required for t-SNE gradient
     double sum_Q = .0;
-    double* pos_f = (double*) calloc(N * D, sizeof(double));
-    double* neg_f = (double*) calloc(N * D, sizeof(double));
+    double* pos_f = new double[N * no_dims]();
+    double* neg_f = new double[N * no_dims]();
+
     if (pos_f == NULL || neg_f == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
     tree->computeEdgeForces(inp_row_P, inp_col_P, inp_val_P, N, pos_f);
-
 
 #ifdef _OPENMP
     #pragma omp parallel for reduction(+:sum_Q)
 #endif
     for (int n = 0; n < N; n++) {
-        double buff[QT_NO_DIMS];
         double this_Q = .0;
-        tree->computeNonEdgeForces(n, theta, neg_f + n * D, &this_Q, &buff[0]);
+        tree->computeNonEdgeForces(n, theta, neg_f + n * no_dims, &this_Q);
         sum_Q += this_Q;
     }
 
     // Compute final t-SNE gradient
-    for (int i = 0; i < N * D; i++) {
+    for (int i = 0; i < N * no_dims; i++) {
         dC[i] = pos_f[i] - (neg_f[i] / sum_Q);
     }
-    free(pos_f);
-    free(neg_f);
+
     delete tree;
+    delete[] pos_f;
+    delete[] neg_f;
 }
 
 // Evaluate t-SNE cost function (approximately)
-double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int N, double theta)
+double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int N, int no_dims, double theta)
 {
 
     // Get estimate of normalization term
-    //const int QT_NO_DIMS = 2;
-    QuadTree* tree = new QuadTree(Y, N);
-    double buff[QT_NO_DIMS] = {.0, .0};
+    QuadTree* tree = new QuadTree(Y, N, no_dims);
+
+    double* buff = new double[no_dims]();
     double sum_Q = .0;
     for (int n = 0; n < N; n++) {
-        double buff1[QT_NO_DIMS];
-        tree->computeNonEdgeForces(n, theta, buff, &sum_Q, &buff1[0]);
+        tree->computeNonEdgeForces(n, theta, buff, &sum_Q);
     }
     delete tree;
-
+    delete[] buff;
+    
     // Loop over all edges to compute t-SNE error
     double C = .0;
 #ifdef _OPENMP
     #pragma omp parallel for reduction(+:C)
 #endif
     for (int n = 0; n < N; n++) {
-        int ind1 = n * QT_NO_DIMS;
+        int ind1 = n * no_dims;
         for (int i = row_P[n]; i < row_P[n + 1]; i++) {
             double Q = .0;
-            int ind2 = col_P[i] * QT_NO_DIMS;
-            for (int d = 0; d < QT_NO_DIMS; d++) buff[d]  = Y[ind1 + d];
-            for (int d = 0; d < QT_NO_DIMS; d++) buff[d] -= Y[ind2 + d];
-            for (int d = 0; d < QT_NO_DIMS; d++) Q += buff[d] * buff[d];
+            int ind2 = col_P[i] * no_dims;
+            for (int d = 0; d < no_dims; d++) {
+                double b  = Y[ind1 + d] - Y[ind2 + d];
+                Q += b * b;
+            }
             Q = (1.0 / (1.0 + Q)) / sum_Q;
             C += val_P[i] * log((val_P[i] + FLT_MIN) / (Q + FLT_MIN));
         }
     }
+    
     return C;
 }
 
@@ -276,15 +288,16 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
     *_val_P = (double*) calloc(N * K, sizeof(double));
     if (*_row_P == NULL || *_col_P == NULL || *_val_P == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
 
-    // row_P -- смещения для col_P,
-    // в col_P записываются K идексов ближайших соседей
-    // в val_P записываются K чисел, видимо p_{i|j}
+    /*
+        row_P -- offsets for `col_P` (i)
+        col_P -- K nearest neighbors indices (j)
+        val_P -- p_{i | j}
+    */
 
     int* row_P = *_row_P;
     int* col_P = *_col_P;
     double* val_P = *_val_P;
 
-    //if(cur_P == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
     row_P[0] = 0;
     for (int n = 0; n < N; n++) {
         row_P[n + 1] = row_P[n] + K;
@@ -383,7 +396,7 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
 #endif
         ++steps_completed;
 
-        if (verbose && steps_completed % 10000 == 0)
+        if (verbose && steps_completed % (N / 10) == 0)
         {
 #ifdef _OPENMP
             #pragma omp critical

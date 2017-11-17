@@ -67,8 +67,6 @@ class MulticoreTSNE:
         self.kl_divergence_ = None
         self.verbose = int(verbose)
 
-        assert n_components == 2, 'n_components should be 2'
-
         assert isinstance(init, np.ndarray) or init == 'random', "init must be 'random' or array"
         if isinstance(init, np.ndarray):
             assert init.ndim == 2, "init array must be 2D"

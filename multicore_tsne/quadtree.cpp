@@ -19,86 +19,84 @@
 
 // Checks whether a point lies in a cell
 bool Cell::containsPoint(double point[])
-{
-    if (x - hw > point[0]) return false;
-    if (x + hw < point[0]) return false;
-    if (y - hh > point[1]) return false;
-    if (y + hh < point[1]) return false;
+{   
+    for (int i = 0; i< n_dims; ++i) {
+        if (abs_d(center[i] - point[i]) > width[i]) {
+            return false;
+        }
+    }
     return true;
 }
 
 
 // Default constructor for quadtree -- build tree, too!
-QuadTree::QuadTree(double* inp_data, int N)
-{
+QuadTree::QuadTree(double* inp_data, int N, int no_dims)
+{   
+    QT_NO_DIMS = no_dims;
+    num_children = 1 << no_dims;
 
     // Compute mean, width, and height of current map (boundaries of quadtree)
-    double* mean_Y = new double[QT_NO_DIMS]; for (int d = 0; d < QT_NO_DIMS; d++) mean_Y[d] = .0;
-    double*  min_Y = new double[QT_NO_DIMS]; for (int d = 0; d < QT_NO_DIMS; d++)  min_Y[d] =  DBL_MAX;
-    double*  max_Y = new double[QT_NO_DIMS]; for (int d = 0; d < QT_NO_DIMS; d++)  max_Y[d] = -DBL_MAX;
+    double* mean_Y = new double[QT_NO_DIMS]; 
+    for (int d = 0; d < QT_NO_DIMS; d++) {
+        mean_Y[d] = .0;
+    }
+
+    double*  min_Y = new double[QT_NO_DIMS]; 
+    for (int d = 0; d < QT_NO_DIMS; d++) {
+        min_Y[d] =  DBL_MAX;  
+    } 
+    double*  max_Y = new double[QT_NO_DIMS]; 
+    for (int d = 0; d < QT_NO_DIMS; d++) {
+        max_Y[d] = -DBL_MAX;
+    }
+
     for (int n = 0; n < N; n++) {
         for (int d = 0; d < QT_NO_DIMS; d++) {
             mean_Y[d] += inp_data[n * QT_NO_DIMS + d];
-            if (inp_data[n * QT_NO_DIMS + d] < min_Y[d]) min_Y[d] = inp_data[n * QT_NO_DIMS + d];
-            if (inp_data[n * QT_NO_DIMS + d] > max_Y[d]) max_Y[d] = inp_data[n * QT_NO_DIMS + d];
+            min_Y[d] = min(min_Y[d], inp_data[n * QT_NO_DIMS + d]);
+            max_Y[d] = max(max_Y[d], inp_data[n * QT_NO_DIMS + d]);
         }
+
     }
-    for (int d = 0; d < QT_NO_DIMS; d++) mean_Y[d] /= (double) N;
+
+    double* width_Y = new double[QT_NO_DIMS]; 
+    for (int d = 0; d < QT_NO_DIMS; d++) {
+        mean_Y[d] /= (double) N;
+        width_Y[d] = max(max_Y[d] - mean_Y[d], mean_Y[d] - min_Y[d]) + 1e-5;    
+    }
 
     // Construct quadtree
-    init(NULL, inp_data, mean_Y[0], mean_Y[1], max(max_Y[0] - mean_Y[0], mean_Y[0] - min_Y[0]) + 1e-5,
-                                               max(max_Y[1] - mean_Y[1], mean_Y[1] - min_Y[1]) + 1e-5);
+    init(NULL, inp_data, mean_Y, width_Y);
     fill(N);
-    delete[] mean_Y; delete[] max_Y; delete[] min_Y;
+    delete[] max_Y; delete[] min_Y;
 }
-
-
-// Constructor for quadtree with particular size and parent -- build the tree, too!
-QuadTree::QuadTree(double* inp_data, int N, double inp_x, double inp_y, double inp_hw, double inp_hh)
-{
-    init(NULL, inp_data, inp_x, inp_y, inp_hw, inp_hh);
-    fill(N);
-}
-
-// Constructor for quadtree with particular size and parent -- build the tree, too!
-QuadTree::QuadTree(QuadTree* inp_parent, double* inp_data, int N, double inp_x, double inp_y, double inp_hw, double inp_hh)
-{
-    init(inp_parent, inp_data, inp_x, inp_y, inp_hw, inp_hh);
-    fill(N);
-}
-
-
-// Constructor for quadtree with particular size (do not fill the tree)
-QuadTree::QuadTree(double* inp_data, double inp_x, double inp_y, double inp_hw, double inp_hh)
-{
-    init(NULL, inp_data, inp_x, inp_y, inp_hw, inp_hh);
-}
-
 
 // Constructor for quadtree with particular size and parent (do not fill the tree)
-QuadTree::QuadTree(QuadTree* inp_parent, double* inp_data, double inp_x, double inp_y, double inp_hw, double inp_hh)
-{
-    init(inp_parent, inp_data, inp_x, inp_y, inp_hw, inp_hh);
+QuadTree::QuadTree(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y)
+{   
+    QT_NO_DIMS = inp_parent->QT_NO_DIMS;
+    num_children = 1 << QT_NO_DIMS;
+    
+    init(inp_parent, inp_data, mean_Y, width_Y);
 }
 
 
 // Main initialization function
-void QuadTree::init(QuadTree* inp_parent, double* inp_data, double inp_x, double inp_y, double inp_hw, double inp_hh)
-{
-    parent = inp_parent;
+void QuadTree::init(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y)
+{   
+    // parent = inp_parent;
     data = inp_data;
     is_leaf = true;
     size = 0;
     cum_size = 0;
-    boundary.x  = inp_x;
-    boundary.y  = inp_y;
-    boundary.hw = inp_hw;
-    boundary.hh = inp_hh;
-    northWest = NULL;
-    northEast = NULL;
-    southWest = NULL;
-    southEast = NULL;
+    
+    boundary.center = mean_Y;
+    boundary.width  = width_Y;
+    boundary.n_dims = QT_NO_DIMS;
+
     index[0] = 0;
+
+    center_of_mass = new double[QT_NO_DIMS];
     for (int i = 0; i < QT_NO_DIMS; i++) {
         center_of_mass[i] = .0;
     }
@@ -107,35 +105,22 @@ void QuadTree::init(QuadTree* inp_parent, double* inp_data, double inp_x, double
 
 // Destructor for quadtree
 QuadTree::~QuadTree()
-{
-    delete northWest;
-    delete northEast;
-    delete southWest;
-    delete southEast;
-}
-
-
-// Update the data underlying this tree
-void QuadTree::setData(double* inp_data)
-{
-    data = inp_data;
-}
-
-
-// Get the parent of the current tree
-QuadTree* QuadTree::getParent()
-{
-    return parent;
+{   
+    for(int i = 0; i != children.size(); i++) {
+        delete children[i];
+    }
+    delete[] center_of_mass;
 }
 
 
 // Insert a point into the QuadTree
 bool QuadTree::insert(int new_index)
-{
+{   
     // Ignore objects which do not belong in this quad tree
     double* point = data + new_index * QT_NO_DIMS;
-    if (!boundary.containsPoint(point))
+    if (!boundary.containsPoint(point)) {
         return false;
+    }
 
     // Online update of cumulative size and center-of-mass
     cum_size++;
@@ -161,45 +146,85 @@ bool QuadTree::insert(int new_index)
         }
         any_duplicate = any_duplicate | duplicate;
     }
-    if (any_duplicate) return true;
+    if (any_duplicate) {
+        return true;
+    }
 
     // Otherwise, we need to subdivide the current cell
-    if (is_leaf) subdivide();
+    if (is_leaf) {
+        subdivide();
+    }
 
     // Find out where the point can be inserted
-    if (northWest->insert(new_index)) return true;
-    if (northEast->insert(new_index)) return true;
-    if (southWest->insert(new_index)) return true;
-    if (southEast->insert(new_index)) return true;
-
+    for (int i = 0; i < num_children; ++i) {
+        if (children[i]->insert(new_index)) {
+            return true;
+        }
+    }
+    
     // Otherwise, the point cannot be inserted (this should never happen)
+    printf("%s\n", "No no, this should not happen");
     return false;
 }
 
+int *get_bits(int n, int bitswanted){
+  int *bits = new int[bitswanted];
+
+  int k;
+  for(k=0; k<bitswanted; k++) {
+    int mask =  1 << k;
+    int masked_n = n & mask;
+    int thebit = masked_n >> k;
+    bits[k] = thebit;
+  }
+
+  return bits;
+}
 
 // Create four children which fully divide this cell into four quads of equal area
 void QuadTree::subdivide() {
 
-    // Create four children
-    delete northWest;
-    delete northEast;
-    delete southWest;
-    delete southEast;
-    northWest = new QuadTree(this, data, boundary.x - .5 * boundary.hw, boundary.y - .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
-    northEast = new QuadTree(this, data, boundary.x + .5 * boundary.hw, boundary.y - .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
-    southWest = new QuadTree(this, data, boundary.x - .5 * boundary.hw, boundary.y + .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
-    southEast = new QuadTree(this, data, boundary.x + .5 * boundary.hw, boundary.y + .5 * boundary.hh, .5 * boundary.hw, .5 * boundary.hh);
+    // Create children
+    double* new_centers = new double[2 * QT_NO_DIMS];
+    for(int i = 0; i < QT_NO_DIMS; ++i) {
+        new_centers[i*2]     = boundary.center[i] - .5 * boundary.width[i];
+        new_centers[i*2 + 1] = boundary.center[i] + .5 * boundary.width[i];
+    }
+
+    for (int i = 0; i < num_children; ++i) {
+        int *bits = get_bits(i, QT_NO_DIMS);    
+
+        double* mean_Y = new double[QT_NO_DIMS]; 
+        double* width_Y = new double[QT_NO_DIMS]; 
+
+        // fill the means and width
+        for (int d = 0; d < QT_NO_DIMS; d++) {
+            mean_Y[d] = new_centers[d*2 + bits[d]];
+            width_Y[d] = .5*boundary.width[d];
+        }
+        
+        QuadTree* qt = new QuadTree(this, data, mean_Y, width_Y);        
+        children.push_back(qt);
+        delete[] bits; 
+    }
+    delete[] new_centers;
 
     // Move existing points to correct children
     for (int i = 0; i < size; i++) {
-        bool          success = northWest->insert(index[i]);
-        if (!success) success = northEast->insert(index[i]);
-        if (!success) success = southWest->insert(index[i]);
-        if (!success) success = southEast->insert(index[i]);
-        index[i] = -1;
+        bool flag = false;
+        for (int j = 0; j < num_children; j++) {
+            if (children[j]->insert(index[i])) {
+                flag = true;
+                break;
+            }
+        }
+        if (flag == false) {
+            index[i] = -1;
+        }
     }
-
-    // Empty parent node
+    
+    // This node is not leaf now
+    // Empty it
     size = 0;
     is_leaf = false;
 }
@@ -208,112 +233,22 @@ void QuadTree::subdivide() {
 // Build quadtree on dataset
 void QuadTree::fill(int N)
 {
-    for (int i = 0; i < N; i++) insert(i);
-}
-
-
-// Checks whether the specified tree is correct
-bool QuadTree::isCorrect()
-{
-    for (int n = 0; n < size; n++) {
-        double* point = data + index[n] * QT_NO_DIMS;
-        if (!boundary.containsPoint(point)) return false;
+    for (int i = 0; i < N; i++) {
+        insert(i);
     }
-    if (!is_leaf) return northWest->isCorrect() &&
-                             northEast->isCorrect() &&
-                             southWest->isCorrect() &&
-                             southEast->isCorrect();
-    else return true;
-}
-
-
-// Rebuilds a possibly incorrect tree (LAURENS: This function is not tested yet!)
-void QuadTree::rebuildTree()
-{
-    for (int n = 0; n < size; n++) {
-
-        // Check whether point is erroneous
-        double* point = data + index[n] * QT_NO_DIMS;
-        if (!boundary.containsPoint(point)) {
-
-            // Remove erroneous point
-            int rem_index = index[n];
-            for (int m = n + 1; m < size; m++) index[m - 1] = index[m];
-            index[size - 1] = -1;
-            size--;
-
-            // Update center-of-mass and counter in all parents
-            bool done = false;
-            QuadTree* node = this;
-            while (!done) {
-                for (int d = 0; d < QT_NO_DIMS; d++) {
-                    node->center_of_mass[d] = ((double) node->cum_size * node->center_of_mass[d] - point[d]) / (double) (node->cum_size - 1);
-                }
-                node->cum_size--;
-                if (node->getParent() == NULL) done = true;
-                else node = node->getParent();
-            }
-
-            // Reinsert point in the root tree
-            node->insert(rem_index);
-        }
-    }
-
-    // Rebuild lower parts of the tree
-    northWest->rebuildTree();
-    northEast->rebuildTree();
-    southWest->rebuildTree();
-    southEast->rebuildTree();
-}
-
-
-// Build a list of all indices in quadtree
-void QuadTree::getAllIndices(int* indices)
-{
-    getAllIndices(indices, 0);
-}
-
-
-// Build a list of all indices in quadtree
-int QuadTree::getAllIndices(int* indices, int loc)
-{
-
-    // Gather indices in current quadrant
-    for (int i = 0; i < size; i++) indices[loc + i] = index[i];
-    loc += size;
-
-    // Gather indices in children
-    if (!is_leaf) {
-        loc = northWest->getAllIndices(indices, loc);
-        loc = northEast->getAllIndices(indices, loc);
-        loc = southWest->getAllIndices(indices, loc);
-        loc = southEast->getAllIndices(indices, loc);
-    }
-    return loc;
-}
-
-
-int QuadTree::getDepth() {
-    if (is_leaf) return 1;
-    return 1 + max(max(northWest->getDepth(),
-                       northEast->getDepth()),
-                   max(southWest->getDepth(),
-                       southEast->getDepth()));
-
 }
 
 
 // Compute non-edge forces using Barnes-Hut algorithm
-void QuadTree::computeNonEdgeForces(int point_index, double theta, double neg_f[], double* sum_Q, double buff[])
+void QuadTree::computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q)
 {
-
     // Make sure that we spend no time on empty nodes or self-interactions
     if (cum_size == 0 || (is_leaf && size == 1 && index[0] == point_index)) return;
 
     // Compute distance between point and center-of-mass
     double D = .0;
     int ind = point_index * QT_NO_DIMS;
-
+    double* buff = new double[QT_NO_DIMS];
 
     for (int d = 0; d < QT_NO_DIMS; d++) {
         buff[d]  = data[ind + d];
@@ -322,7 +257,11 @@ void QuadTree::computeNonEdgeForces(int point_index, double theta, double neg_f[
     }
 
     // Check whether we can use this node as a "summary"
-    if (is_leaf || max(boundary.hh, boundary.hw) / sqrt(D) < theta) {
+    double m = -1;
+    for (int i = 0; i < QT_NO_DIMS; ++i) {
+        m = max(m, boundary.width[i]);
+    }
+    if (is_leaf || m / sqrt(D) < theta) {
 
         // Compute and add t-SNE force between point and current node
         double Q = 1.0 / (1.0 + D);
@@ -333,11 +272,11 @@ void QuadTree::computeNonEdgeForces(int point_index, double theta, double neg_f[
     }
     else {
         // Recursively apply Barnes-Hut to children
-        northWest->computeNonEdgeForces(point_index, theta, neg_f, sum_Q, buff);
-        northEast->computeNonEdgeForces(point_index, theta, neg_f, sum_Q, buff);
-        southWest->computeNonEdgeForces(point_index, theta, neg_f, sum_Q, buff);
-        southEast->computeNonEdgeForces(point_index, theta, neg_f, sum_Q, buff);
+        for (int i = 0; i < num_children; ++i) {
+            children[i]->computeNonEdgeForces(point_index, theta, neg_f, sum_Q);
+        }
     }
+    delete[] buff;
 }
 
 
@@ -371,34 +310,3 @@ void QuadTree::computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, d
         }
     }
 }
-
-
-// Print out tree
-void QuadTree::print()
-{
-    if (cum_size == 0) {
-        printf("Empty node\n");
-        return;
-    }
-
-    if (is_leaf) {
-        printf("Leaf node; data = [");
-        for (int i = 0; i < size; i++) {
-            double* point = data + index[i] * QT_NO_DIMS;
-            for (int d = 0; d < QT_NO_DIMS; d++) printf("%f, ", point[d]);
-            printf(" (index = %d)", index[i]);
-            if (i < size - 1) printf("\n");
-            else printf("]\n");
-        }
-    }
-    else {
-        printf("Intersection node with center-of-mass = [");
-        for (int d = 0; d < QT_NO_DIMS; d++) printf("%f, ", center_of_mass[d]);
-        printf("]; children are:\n");
-        northEast->print();
-        northWest->print();
-        southEast->print();
-        southWest->print();
-    }
-}
-
