@@ -49,28 +49,20 @@ Python and torch wrappers are available.
 ## Python
 ### Install
 
-Make sure `cmake` is installed on your system.
+Make sure `cmake` is installed on your system, and you will also need a sensible C++ compiler, such as `gcc` or `llvm-clang`. On macOS, you can get both via [homebrew](https://brew.sh/).
 
-To install the package please do:
+To install the package, please do:
 ```
 git clone https://github.com/DmitryUlyanov/Multicore-TSNE.git
 cd Multicore-TSNE/
-pip install --no-cache-dir .
+pip install .
 ```
-
-It's important that you add `--no-cache-dir` otherwise pip won't copy
-the `.so` file which is needed at runtime.
-
-For [installation on MacOS](https://github.com/DmitryUlyanov/Multicore-TSNE/issues/1), before running `pip install --no-cache-dir .`, you need to
-* install gcc with `brew install gcc --without-multilib
-* change line 9 of [CMakeLists.txt](multicore_tsne/CMakeLists.txt) to `SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -O3 -fPIC -ffast-math -funroll-loops -lstdc++")`
-* run `export CC="/usr/local/Cellar/gcc/X.x.x/bin/gcc-X"; export CXX="/usr/local/Cellar/gcc/X.x.x/bin/gcc-X"`, where `X` and `x` refers to the version of `gcc`; in my case, e.g., the path reads `/usr/local/Cellar/gcc/6.3.0_1/bin/gcc-6`
 
 Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04.
 
 ### Run
 
-You can use it as a drop-in replacement for [sklearn.manifold.TSNE](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.htm).
+You can use it as a near drop-in replacement for [sklearn.manifold.TSNE](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.htm).
 
 ```
 from MulticoreTSNE import MulticoreTSNE as TSNE
@@ -81,11 +73,7 @@ Y = tsne.fit_transform(X)
 
 Please refer to [sklearn TSNE manual](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html) for parameters explanation.
 
-Only double arrays are supported for now. For this implementation `n_components` is fixed to `2`, which is the most common case (use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) or sklearn otherwise). Also note that some of the parameters will be ignored for sklearn compatibility. Only these parameters are used (and they are the most important ones):
-
-- perplexity
-- n_iter
-- angle
+This implementation `n_components=2`, which is the most common case (use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) or sklearn otherwise). Also note that some parameters are there just for the sake of compatibility with sklearn and are otherwise ignored. See `MulticoreTSNE` class docstring for more info.
 
 ### Test
 

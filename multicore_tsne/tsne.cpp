@@ -54,7 +54,9 @@ void TSNE::run(double* X, int N, int D, double* Y,
 
 #ifdef _OPENMP
     omp_set_num_threads(NUM_THREADS(num_threads));
+#if _OPENMP >= 200805
     omp_set_schedule(omp_sched_guided, 0);
+#endif
 #endif
 
     if (verbose)
@@ -524,6 +526,9 @@ double TSNE::randn() {
 
 extern "C"
 {
+    #ifdef _WIN32
+    __declspec(dllexport)
+    #endif
     extern void tsne_run_double(double* X, int N, int D, double* Y,
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
                                 int num_threads = 1, int max_iter = 1000, int random_state = -1,
