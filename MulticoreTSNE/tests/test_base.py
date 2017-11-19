@@ -25,7 +25,7 @@ class TestMulticoreTSNE(unittest.TestCase):
 
     def test_tsne(self):
         X, y = self.Xy
-        tsne = MulticoreTSNE(perplexity=5, n_iter=500)
+        tsne = MulticoreTSNE(perplexity=10, n_iter=500)
         E = tsne.fit_transform(X)
 
         self.assertEqual(E.shape, (X.shape[0], 2))
