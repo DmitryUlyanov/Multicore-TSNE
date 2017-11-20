@@ -127,11 +127,11 @@ Please cite this repository if it was useful for your research:
 ```
 @misc{Ulyanov2016,
   author = {Ulyanov, Dmitry},
-  title = {Muticore-TSNE},
+  title = {Multicore-TSNE},
   year = {2016},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/DmitryUlyanov/Muticore-TSNE}},
+  howpublished = {\url{https://github.com/DmitryUlyanov/Multicore-TSNE}},
 }
 ```
 
