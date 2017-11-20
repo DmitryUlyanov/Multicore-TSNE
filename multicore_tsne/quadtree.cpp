@@ -251,8 +251,7 @@ void QuadTree::computeNonEdgeForces(int point_index, double theta, double* neg_f
     double* buff = new double[QT_NO_DIMS];
 
     for (int d = 0; d < QT_NO_DIMS; d++) {
-        buff[d]  = data[ind + d];
-        buff[d] -= center_of_mass[d];
+        buff[d]  = data[ind + d] - center_of_mass[d];
         D += buff[d] * buff[d];
     }
 
@@ -296,10 +295,8 @@ void QuadTree::computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, d
             D = .0;
             int ind2 = col_P[i] * QT_NO_DIMS;
             for (int d = 0; d < QT_NO_DIMS; d++) {
-                buff[d]  = data[ind1 + d];
-                buff[d] -= data[ind2 + d];
+                buff[d]  = data[ind1 + d] - data[ind2 + d];
                 D += buff[d] * buff[d];
-
             }
             D = val_P[i] / (1.0 + D);
 
