@@ -309,4 +309,5 @@ void QuadTree::computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, d
             }
         }
     }
+    delete[] buff;
 }
