@@ -106,7 +106,7 @@ void QuadTree::init(QuadTree* inp_parent, double* inp_data, double* mean_Y, doub
 // Destructor for quadtree
 QuadTree::~QuadTree()
 {   
-    for(int i = 0; i != children.size(); i++) {
+    for(uint i = 0; i != children.size(); i++) {
         delete children[i];
     }
     delete[] center_of_mass;
@@ -286,7 +286,7 @@ void QuadTree::computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, d
 
     // Loop over all edges in the graph
     double D;
-    double buff[QT_NO_DIMS];
+    double* buff = new double[QT_NO_DIMS];
 
     for (int n = 0; n < N; n++) {
         int ind1 = n * QT_NO_DIMS;
