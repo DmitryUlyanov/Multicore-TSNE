@@ -11,6 +11,12 @@ from MulticoreTSNE import MulticoreTSNE as TSNE
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--n_jobs", help='Number of threads', default=1)
+parser.add_argument("--n_objects", help='How many objects to use from MNIST', default=-1)
+parser.add_argument("--n_components", help='T-SNE dimensionality', default=2)
+args = parser.parse_args()
 
 def get_mnist():
 
@@ -42,7 +48,6 @@ def get_mnist():
 
     return mnist, classes
 
-
 def plot(Y, classes, name):
     digits = set(classes)
     fig = plt.figure()
@@ -53,17 +58,29 @@ def plot(Y, classes, name):
     labels = []
     for d in digits:
         idx = classes == d
-        ax.plot(Y[idx, 0], Y[idx, 1], 'o')
+        if Y.shape[1] == 1:
+            ax.plot(Y[idx], np.random.randn(Y[idx].shape[0]), 'o')
+        else:
+            ax.plot(Y[idx, 0], Y[idx, 1], 'o')
+        
         labels.append(d)
     ax.legend(labels, numpoints=1, fancybox=True)
     fig.savefig(name)
+    if Y.shape[1] > 2:
+        print('Warning! Plot shows only first two components!')
+
 
 ################################################################
 
-
 mnist, classes = get_mnist()
 
-tsne = TSNE(n_jobs=int(sys.argv[1]), verbose=1)
+if args.n_objects != -1:
+    mnist = mnist[:1000]
+    classes = classes[:1000]
+
+tsne = TSNE(n_jobs=int(args.n_jobs), verbose=1, n_components=args.n_components)
 mnist_tsne = tsne.fit_transform(mnist)
 
-plot(mnist_tsne, classes, 'tsne_' + sys.argv[1] + 'core.png')
+filename = 'mnist_tsne_n_comp=%d.png' % args.n_components
+plot(mnist_tsne, classes, filename)
+print('Plot saved to %s' % filename)
