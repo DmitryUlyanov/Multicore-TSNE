@@ -106,7 +106,7 @@ void QuadTree::init(QuadTree* inp_parent, double* inp_data, double* mean_Y, doub
 // Destructor for quadtree
 QuadTree::~QuadTree()
 {   
-    for(uint i = 0; i != children.size(); i++) {
+    for(unsigned int i = 0; i != children.size(); i++) {
         delete children[i];
     }
     delete[] center_of_mass;
