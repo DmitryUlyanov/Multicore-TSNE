@@ -219,6 +219,7 @@ void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, do
     double* neg_f = new double[N * no_dims]();
 
     if (pos_f == NULL || neg_f == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    
     tree->computeEdgeForces(inp_row_P, inp_col_P, inp_val_P, N, pos_f);
 
 #ifdef _OPENMP
