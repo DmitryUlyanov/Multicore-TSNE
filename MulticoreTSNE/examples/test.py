@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--n_jobs", help='Number of threads', default=1)
-parser.add_argument("--n_objects", help='How many objects to use from MNIST', default=-1)
-parser.add_argument("--n_components", help='T-SNE dimensionality', default=2)
+parser.add_argument("--n_jobs", help='Number of threads', default=1, type=int)
+parser.add_argument("--n_objects", help='How many objects to use from MNIST', default=-1, type=int)
+parser.add_argument("--n_components", help='T-SNE dimensionality', default=2, type=int)
 args = parser.parse_args()
 
 def get_mnist():
@@ -75,8 +75,8 @@ def plot(Y, classes, name):
 mnist, classes = get_mnist()
 
 if args.n_objects != -1:
-    mnist = mnist[:1000]
-    classes = classes[:1000]
+    mnist = mnist[:args.n_objects]
+    classes = classes[:args.n_objects]
 
 tsne = TSNE(n_jobs=int(args.n_jobs), verbose=1, n_components=args.n_components)
 mnist_tsne = tsne.fit_transform(mnist)
