@@ -148,7 +148,8 @@ void TSNE::run(double* X, int N, int D, double* Y,
     for (int iter = 0; iter < max_iter; iter++) {
 
         // Compute approximate gradient
-        computeGradient(row_P, col_P, val_P, Y, N, no_dims, dY, theta);
+        double error = computeGradient(row_P, col_P, val_P, Y, N, no_dims, dY, theta, (int) (3 * perplexity));
+
         for (int i = 0; i < N * no_dims; i++) {
             // Update gains
             gains[i] = (sign(dY[i]) != sign(uY[i])) ? (gains[i] + .2) : (gains[i] * .8 + .01);
@@ -174,15 +175,15 @@ void TSNE::run(double* X, int N, int D, double* Y,
         // Print out progress
         if (verbose && ((iter > 0 && iter % 50 == 0) || (iter == max_iter - 1))) {
             end = time(0);
-            double C;
+            // double C;
 
-            C = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);  // doing approximate computation here!
+            // C = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);  // doing approximate computation here!
 
             if (iter == 0)
-                fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, C);
+                fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, error);
             else {
                 total_time += (float) (end - start);
-                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, C, (float) (end - start) );
+                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, error, (float) (end - start) );
             }
             start = time(0);
         }
@@ -190,8 +191,8 @@ void TSNE::run(double* X, int N, int D, double* Y,
     }
     end = time(0); total_time += (float) (end - start) ;
 
-    if (final_error != NULL)
-        *final_error = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);
+    // if (final_error != NULL)
+    //     *final_error = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);
 
     // Clean up memory
     free(dY);
@@ -208,7 +209,7 @@ void TSNE::run(double* X, int N, int D, double* Y,
 
 
 // Compute gradient of the t-SNE cost function (using Barnes-Hut algorithm)
-void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta)
+double TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta, int K)
 {
     // Construct quadtree on current map
     QuadTree* tree = new QuadTree(Y, N, no_dims);
@@ -218,19 +219,47 @@ void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, do
     double* pos_f = new double[N * no_dims]();
     double* neg_f = new double[N * no_dims]();
 
-    if (pos_f == NULL || neg_f == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
-    
-    tree->computeEdgeForces(inp_row_P, inp_col_P, inp_val_P, N, pos_f);
+    double P_i_sum = 0.;
+    double C = 0.;
 
+    if (pos_f == NULL || neg_f == NULL) { 
+        fprintf(stderr, "Memory allocation failed!\n"); exit(1); 
+    }
+    
 #ifdef _OPENMP
     #pragma omp parallel for reduction(+:sum_Q)
 #endif
     for (int n = 0; n < N; n++) {
+        // Edge forces
+        int ind1 = n * no_dims;
+        for (int i = inp_row_P[n]; i < inp_row_P[n + 1]; i++) {
+
+            // Compute pairwise distance and Q-value
+            double D = .0;
+            int ind2 = inp_col_P[i] * no_dims;
+            for (int d = 0; d < no_dims; d++) {
+                double t = Y[ind1 + d] - Y[ind2 + d];
+                D += t * t;
+            }
+            D = inp_val_P[i] / (1.0 + D);
+
+            // P_i_sum += inp_val_P[i];
+
+            double Q = 1.0 / (1.0 + D);
+            C += inp_val_P[i] * log((inp_val_P[i] + FLT_MIN) / (Q + FLT_MIN));
+
+            // Sum positive force
+            for (int d = 0; d < no_dims; d++) {
+                pos_f[ind1 + d] += D * (Y[ind1 + d] - Y[ind2 + d]);
+            }
+        }
+
+        // NoneEdge forces
         double this_Q = .0;
         tree->computeNonEdgeForces(n, theta, neg_f + n * no_dims, &this_Q);
         sum_Q += this_Q;
     }
-
+    P_i_sum = 1;
     // Compute final t-SNE gradient
     for (int i = 0; i < N * no_dims; i++) {
         dC[i] = pos_f[i] - (neg_f[i] / sum_Q);
@@ -239,6 +268,10 @@ void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, do
     delete tree;
     delete[] pos_f;
     delete[] neg_f;
+
+    C = C + P_i_sum * log(sum_Q);
+
+    return C;
 }
 
 // Evaluate t-SNE cost function (approximately)
