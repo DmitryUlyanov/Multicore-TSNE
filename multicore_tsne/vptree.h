@@ -25,7 +25,6 @@ class DataPoint
     int _D;
     int _ind;
     
-
 public:
     double* _x;
     DataPoint() {
@@ -37,35 +36,19 @@ public:
         _D = D;
         _ind = ind;
         _x = x;
-        // _x = (double*) malloc(_D * sizeof(double));
-        // for (int d = 0; d < _D; d++) {
-        //     _x[d] = x[d];
-        // }
     }
     DataPoint(const DataPoint& other) {                     // this makes a deep copy -- should not free anything
         if (this != &other) {
             _D = other.dimensionality();
             _ind = other.index();
-            // _x = (double*) malloc(_D * sizeof(double));
-            // for (int d = 0; d < _D; d++) {
-            //     _x[d] = other.x(d);
-            // }
             _x = other._x;
         }
     }
-    ~DataPoint() { 
-        // if (_x != NULL) 
-        //     free(_x); 
-    }
+
     DataPoint& operator= (const DataPoint& other) {         // asignment should free old object
         if (this != &other) {
-            // if (_x != NULL) free(_x);
             _D = other.dimensionality();
             _ind = other.index();
-            // _x = (double*) malloc(_D * sizeof(double));
-            // for (int d = 0; d < _D; d++) {
-            //     _x[d] = other.x(d);
-            // }
             _x = other._x;
         }
         return *this;
