@@ -64,8 +64,6 @@ public:
 	bool insert(int new_index);
 	void subdivide();
 	void computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q);
-	void computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, double* pos_f);
-
 private:
 	
 	void init(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);

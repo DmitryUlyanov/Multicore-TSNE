@@ -243,16 +243,16 @@ void QuadTree::fill(int N)
 void QuadTree::computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q)
 {
     // Make sure that we spend no time on empty nodes or self-interactions
-    if (cum_size == 0 || (is_leaf && size == 1 && index[0] == point_index)) return;
-
+    if (cum_size == 0 || (is_leaf && size == 1 && index[0] == point_index)) {
+        return;
+    }
     // Compute distance between point and center-of-mass
     double D = .0;
     int ind = point_index * QT_NO_DIMS;
-    double* buff = new double[QT_NO_DIMS];
 
     for (int d = 0; d < QT_NO_DIMS; d++) {
-        buff[d]  = data[ind + d] - center_of_mass[d];
-        D += buff[d] * buff[d];
+        double t  = data[ind + d] - center_of_mass[d];
+        D += t * t;
     }
 
     // Check whether we can use this node as a "summary"
@@ -266,8 +266,9 @@ void QuadTree::computeNonEdgeForces(int point_index, double theta, double* neg_f
         double Q = 1.0 / (1.0 + D);
         *sum_Q += cum_size * Q;
         double mult = cum_size * Q * Q;
-        for (int d = 0; d < QT_NO_DIMS; d++)
-            neg_f[d] += mult * buff[d];
+        for (int d = 0; d < QT_NO_DIMS; d++) {
+            neg_f[d] += mult * (data[ind + d] - center_of_mass[d]);
+        }
     }
     else {
         // Recursively apply Barnes-Hut to children
@@ -275,36 +276,4 @@ void QuadTree::computeNonEdgeForces(int point_index, double theta, double* neg_f
             children[i]->computeNonEdgeForces(point_index, theta, neg_f, sum_Q);
         }
     }
-    delete[] buff;
-}
-
-
-// Computes edge forces
-void QuadTree::computeEdgeForces(int* row_P, int* col_P, double* val_P, int N, double* pos_f)
-{
-
-    // Loop over all edges in the graph
-    double D;
-    double* buff = new double[QT_NO_DIMS];
-
-    for (int n = 0; n < N; n++) {
-        int ind1 = n * QT_NO_DIMS;
-        for (int i = row_P[n]; i < row_P[n + 1]; i++) {
-
-            // Compute pairwise distance and Q-value
-            D = .0;
-            int ind2 = col_P[i] * QT_NO_DIMS;
-            for (int d = 0; d < QT_NO_DIMS; d++) {
-                buff[d]  = data[ind1 + d] - data[ind2 + d];
-                D += buff[d] * buff[d];
-            }
-            D = val_P[i] / (1.0 + D);
-
-            // Sum positive force
-            for (int d = 0; d < QT_NO_DIMS; d++) {
-                pos_f[ind1 + d] += D * buff[d];
-            }
-        }
-    }
-    delete[] buff;
 }
