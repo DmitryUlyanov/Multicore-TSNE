@@ -78,7 +78,7 @@ if args.n_objects != -1:
     mnist = mnist[:args.n_objects]
     classes = classes[:args.n_objects]
 
-tsne = TSNE(n_jobs=int(args.n_jobs), verbose=1, n_components=args.n_components)
+tsne = TSNE(n_jobs=int(args.n_jobs), verbose=1, n_components=args.n_components, random_state=660)
 mnist_tsne = tsne.fit_transform(mnist)
 
 filename = 'mnist_tsne_n_comp=%d.png' % args.n_components

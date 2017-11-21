@@ -147,8 +147,11 @@ void TSNE::run(double* X, int N, int D, double* Y,
     start = time(0);
     for (int iter = 0; iter < max_iter; iter++) {
 
+        bool need_eval_error = (verbose && ((iter > 0 && iter % 50 == 0) || (iter == max_iter - 1)));
+
         // Compute approximate gradient
-        computeGradient(row_P, col_P, val_P, Y, N, no_dims, dY, theta);
+        double error = computeGradient(row_P, col_P, val_P, Y, N, no_dims, dY, theta, need_eval_error);
+
         for (int i = 0; i < N * no_dims; i++) {
             // Update gains
             gains[i] = (sign(dY[i]) != sign(uY[i])) ? (gains[i] + .2) : (gains[i] * .8 + .01);
@@ -172,17 +175,14 @@ void TSNE::run(double* X, int N, int D, double* Y,
         }
 
         // Print out progress
-        if (verbose && ((iter > 0 && iter % 50 == 0) || (iter == max_iter - 1))) {
+        if (need_eval_error) {
             end = time(0);
-            double C;
-
-            C = evaluateError(row_P, col_P, val_P, Y, N, no_dims, theta);  // doing approximate computation here!
 
             if (iter == 0)
-                fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, C);
+                fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, error);
             else {
                 total_time += (float) (end - start);
-                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, C, (float) (end - start) );
+                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, error, (float) (end - start) );
             }
             start = time(0);
         }
@@ -206,29 +206,62 @@ void TSNE::run(double* X, int N, int D, double* Y,
         fprintf(stderr, "Fitting performed in %4.2f seconds.\n", total_time);
 }
 
-
 // Compute gradient of the t-SNE cost function (using Barnes-Hut algorithm)
-void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta)
+double TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta, bool eval_error)
 {
     // Construct quadtree on current map
     QuadTree* tree = new QuadTree(Y, N, no_dims);
     
     // Compute all terms required for t-SNE gradient
-    double sum_Q = .0;
+    double* Q = new double[N];
     double* pos_f = new double[N * no_dims]();
     double* neg_f = new double[N * no_dims]();
 
-    if (pos_f == NULL || neg_f == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
-    
-    tree->computeEdgeForces(inp_row_P, inp_col_P, inp_val_P, N, pos_f);
+    double P_i_sum = 0.;
+    double C = 0.;
 
+    if (pos_f == NULL || neg_f == NULL) { 
+        fprintf(stderr, "Memory allocation failed!\n"); exit(1); 
+    }
+    
 #ifdef _OPENMP
-    #pragma omp parallel for reduction(+:sum_Q)
+    #pragma omp parallel for reduction(+:P_i_sum,C)
 #endif
     for (int n = 0; n < N; n++) {
+        // Edge forces
+        int ind1 = n * no_dims;
+        for (int i = inp_row_P[n]; i < inp_row_P[n + 1]; i++) {
+
+            // Compute pairwise distance and Q-value
+            double D = .0;
+            int ind2 = inp_col_P[i] * no_dims;
+            for (int d = 0; d < no_dims; d++) {
+                double t = Y[ind1 + d] - Y[ind2 + d];
+                D += t * t;
+            }
+            
+            // Sometimes we want to compute error on the go
+            if (eval_error) {
+                P_i_sum += inp_val_P[i];
+                C += inp_val_P[i] * log((inp_val_P[i] + FLT_MIN) / ((1.0 / (1.0 + D)) + FLT_MIN));
+            }
+
+            D = inp_val_P[i] / (1.0 + D);
+            // Sum positive force
+            for (int d = 0; d < no_dims; d++) {
+                pos_f[ind1 + d] += D * (Y[ind1 + d] - Y[ind2 + d]);
+            }
+        }
+        
+        // NoneEdge forces
         double this_Q = .0;
         tree->computeNonEdgeForces(n, theta, neg_f + n * no_dims, &this_Q);
-        sum_Q += this_Q;
+        Q[n] = this_Q;
+    }
+    
+    double sum_Q = 0.;
+    for (int i = 0; i < N; i++) {
+        sum_Q += Q[i];
     }
 
     // Compute final t-SNE gradient
@@ -239,7 +272,13 @@ void TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, do
     delete tree;
     delete[] pos_f;
     delete[] neg_f;
+    delete[] Q;
+
+    C += P_i_sum * log(sum_Q);
+
+    return C;
 }
+
 
 // Evaluate t-SNE cost function (approximately)
 double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int N, int no_dims, double theta)
@@ -428,9 +467,14 @@ void TSNE::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) 
             // Check whether element (col_P[i], n) is present
             bool present = false;
             for (int m = row_P[col_P[i]]; m < row_P[col_P[i] + 1]; m++) {
-                if (col_P[m] == n) present = true;
+                if (col_P[m] == n) {
+                    present = true;
+                    break;
+                }
             }
-            if (present) row_counts[n]++;
+            if (present) {
+                row_counts[n]++;
+            }
             else {
                 row_counts[n]++;
                 row_counts[col_P[i]]++;
@@ -438,8 +482,9 @@ void TSNE::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) 
         }
     }
     int no_elem = 0;
-    for (int n = 0; n < N; n++) no_elem += row_counts[n];
-
+    for (int n = 0; n < N; n++) {
+        no_elem += row_counts[n];
+    }
     // Allocate memory for symmetrized matrix
     int*    sym_row_P = (int*)    malloc((N + 1) * sizeof(int));
     int*    sym_col_P = (int*)    malloc(no_elem * sizeof(int));
@@ -481,13 +526,17 @@ void TSNE::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) 
             // Update offsets
             if (!present || (n <= col_P[i])) {
                 offset[n]++;
-                if (col_P[i] != n) offset[col_P[i]]++;
+                if (col_P[i] != n) {
+                    offset[col_P[i]]++;
+                }
             }
         }
     }
 
     // Divide the result by two
-    for (int i = 0; i < no_elem; i++) sym_val_P[i] /= 2.0;
+    for (int i = 0; i < no_elem; i++) {
+        sym_val_P[i] /= 2.0;
+    }
 
     // Return symmetrized matrices
     free(*_row_P); *_row_P = sym_row_P;
