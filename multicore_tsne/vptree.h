@@ -24,7 +24,7 @@ class DataPoint
 {
     int _D;
     int _ind;
-    
+
 public:
     double* _x;
     DataPoint() {
@@ -59,21 +59,24 @@ public:
 };
 
 
-double euclidean_distance(const DataPoint &t1, const DataPoint &t2) {
+double euclidean_distance_squared(const DataPoint &t1, const DataPoint &t2) {
     double dd = .0;
     for (int d = 0; d < t1.dimensionality(); d++) {
         double t = (t1.x(d) - t2.x(d));
         dd += t * t;
     }
-    return sqrt(dd);
+    return dd;
+}
+
+inline double euclidean_distance(const DataPoint &t1, const DataPoint &t2) {
+    return sqrt(euclidean_distance_squared(t1, t2));
 }
 
 
-template<typename T, double (*distance)( const T&, const T& )>
+template<typename T, double (*distance)( const DataPoint&, const DataPoint&)>
 class VpTree
 {
 public:
-
     // Default constructor
     VpTree() : _root(0) {}
 

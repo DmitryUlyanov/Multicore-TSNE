@@ -34,6 +34,9 @@ class MulticoreTSNE:
     * min_grad_norm
     * metric
     * method
+    
+    When `cheat_metric` is true squared equclidean distance is used to build VPTree. 
+    Usually leads to same quality, yet much faster.
 
     Parameter `init` doesn't support 'pca' initialization, but a precomputed
     array can be passed.
@@ -52,7 +55,8 @@ class MulticoreTSNE:
                  random_state=None,
                  method='barnes_hut',
                  angle=0.5,
-                 n_jobs=1):
+                 n_jobs=1,
+                 cheat_metric=True):
         self.n_components = n_components
         self.angle = angle
         self.perplexity = perplexity
@@ -66,7 +70,7 @@ class MulticoreTSNE:
         self.n_iter_ = None
         self.kl_divergence_ = None
         self.verbose = int(verbose)
-
+        self.cheat_metric = cheat_metric
         assert isinstance(init, np.ndarray) or init == 'random', "init must be 'random' or array"
         if isinstance(init, np.ndarray):
             assert init.ndim == 2, "init array must be 2D"
@@ -80,7 +84,7 @@ class MulticoreTSNE:
                                     int num_threads, int max_iter, int random_state,
                                     bool init_from_Y, int verbose,
                                     double early_exaggeration, double learning_rate,
-                                    double *final_error);""")
+                                    double *final_error, int distance);""")
 
         path = os.path.dirname(os.path.realpath(__file__))
         try:
@@ -119,7 +123,7 @@ class MulticoreTSNE:
                        cffi_Y, self.n_components,
                        self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state,
                        init_from_Y, self.verbose, self.early_exaggeration, self.learning_rate,
-                       cffi_final_error)
+                       cffi_final_error, int(self.cheat_metric))
         t.daemon = True
         t.start()
 

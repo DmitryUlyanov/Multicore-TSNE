@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <vector>
 
-#ifndef QUADTREE_H
-#define QUADTREE_H
+#ifndef SPLITTREE_H
+#define SPLITREE_H
 
 static inline double min(double x, double y) { return (x <= y ? x : y); }
 static inline double max(double x, double y) { return (x <= y ? y : x); }
@@ -32,7 +32,7 @@ public:
 };
 
 
-class QuadTree
+class SplitTree
 {
 
 	// Fixed constants
@@ -53,20 +53,20 @@ class QuadTree
 	int index[QT_NODE_CAPACITY];
 
 	int num_children;
-	std::vector<QuadTree*> children;
+	std::vector<SplitTree*> children;
 public:
 	
 
-	QuadTree(double* inp_data, int N, int no_dims);
-	QuadTree(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);
-	~QuadTree();
+	SplitTree(double* inp_data, int N, int no_dims);
+	SplitTree(SplitTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);
+	~SplitTree();
 	void construct(Cell boundary);
 	bool insert(int new_index);
 	void subdivide();
 	void computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q);
 private:
 	
-	void init(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);
+	void init(SplitTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y);
 	void fill(int N);
 };
 

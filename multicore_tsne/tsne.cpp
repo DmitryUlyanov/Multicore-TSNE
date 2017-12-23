@@ -20,7 +20,8 @@
 #include <omp.h>
 #endif
 
-#include "quadtree.h"
+// #include "quadtree.h"
+#include "splittree.h"
 #include "vptree.h"
 #include "tsne.h"
 
@@ -39,12 +40,13 @@
         Y -- array to fill with the result of size [N, no_dims]
         no_dims -- target dimentionality
 */
-void TSNE::run(double* X, int N, int D, double* Y,
-               int no_dims = 2, double perplexity = 30, double theta = .5,
-               int num_threads = 1, int max_iter = 1000, int random_state = 0,
-               bool init_from_Y = false, int verbose = 0,
-               double early_exaggeration = 12, double learning_rate = 200,
-               double *final_error = NULL) {
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
+               int no_dims, double perplexity, double theta ,
+               int num_threads, int max_iter, int random_state,
+               bool init_from_Y, int verbose,
+               double early_exaggeration, double learning_rate,
+               double *final_error) {
 
     if (N - 1 < 3 * perplexity) {
         perplexity = (N - 1) / 3;
@@ -207,10 +209,11 @@ void TSNE::run(double* X, int N, int D, double* Y,
 }
 
 // Compute gradient of the t-SNE cost function (using Barnes-Hut algorithm)
-double TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta, bool eval_error)
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+double TSNE<treeT, dist_fn>::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int no_dims, double* dC, double theta, bool eval_error)
 {
     // Construct quadtree on current map
-    QuadTree* tree = new QuadTree(Y, N, no_dims);
+    treeT* tree = new treeT(Y, N, no_dims);
     
     // Compute all terms required for t-SNE gradient
     double* Q = new double[N];
@@ -281,11 +284,12 @@ double TSNE::computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, 
 
 
 // Evaluate t-SNE cost function (approximately)
-double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int N, int no_dims, double theta)
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+double TSNE<treeT, dist_fn>::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int N, int no_dims, double theta)
 {
 
     // Get estimate of normalization term
-    QuadTree* tree = new QuadTree(Y, N, no_dims);
+    treeT* tree = new treeT(Y, N, no_dims);
 
     double* buff = new double[no_dims]();
     double sum_Q = .0;
@@ -318,7 +322,8 @@ double TSNE::evaluateError(int* row_P, int* col_P, double* val_P, double* Y, int
 }
 
 // Compute input similarities with a fixed perplexity using ball trees (this function allocates memory another function should free)
-void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int** _col_P, double** _val_P, double perplexity, int K, int verbose) {
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int** _col_P, double** _val_P, double perplexity, int K, int verbose) {
 
     if (perplexity > K) fprintf(stderr, "Perplexity should be lower than K!\n");
 
@@ -344,7 +349,7 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
     }
 
     // Build ball tree on data set
-    VpTree<DataPoint, euclidean_distance>* tree = new VpTree<DataPoint, euclidean_distance>();
+    VpTree<DataPoint, dist_fn>* tree = new VpTree<DataPoint, dist_fn>();
     std::vector<DataPoint> obj_X(N, DataPoint(D, -1, X));
     for (int n = 0; n < N; n++) {
         obj_X[n] = DataPoint(D, n, X + n * D);
@@ -450,8 +455,8 @@ void TSNE::computeGaussianPerplexity(double* X, int N, int D, int** _row_P, int*
     delete tree;
 }
 
-
-void TSNE::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) {
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+void TSNE<treeT, dist_fn>::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) {
 
     // Get sparse matrix
     int* row_P = *_row_P;
@@ -550,7 +555,8 @@ void TSNE::symmetrizeMatrix(int** _row_P, int** _col_P, double** _val_P, int N) 
 
 
 // Makes data zero-mean
-void TSNE::zeroMean(double* X, int N, int D) {
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+void TSNE<treeT, dist_fn>::zeroMean(double* X, int N, int D) {
 
     // Compute data mean
     double* mean = (double*) calloc(D, sizeof(double));
@@ -575,7 +581,8 @@ void TSNE::zeroMean(double* X, int N, int D) {
 
 
 // Generates a Gaussian random number
-double TSNE::randn() {
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
+double TSNE<treeT, dist_fn>::randn() {
     double x, radius;
     do {
         x = 2 * (rand() / ((double) RAND_MAX + 1)) - 1;
@@ -597,12 +604,19 @@ extern "C"
                                 int num_threads = 1, int max_iter = 1000, int random_state = -1,
                                 bool init_from_Y = false, int verbose = 0,
                                 double early_exaggeration = 12, double learning_rate = 200,
-                                double *final_error = NULL)
+                                double *final_error = NULL, int distance = 1)
     {
         if (verbose)
             fprintf(stderr, "Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
-        TSNE tsne;
-        tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
-                 init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
+        if (distance == 0) {
+            TSNE<SplitTree, euclidean_distance> tsne;
+            tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
+                     init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
+        }
+        else {
+            TSNE<SplitTree, euclidean_distance_squared> tsne;
+            tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
+                     init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
+        }
     }
 }

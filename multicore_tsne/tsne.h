@@ -15,15 +15,16 @@
 
 static inline double sign(double x) { return (x == .0 ? .0 : (x < .0 ? -1.0 : 1.0)); }
 
-
+template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
 class TSNE
 {
 public:
-    void run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta,
-             int num_threads, int max_iter, int random_state, bool init_from_Y, int verbose,
-             double early_exaggeration, double learning_rate, double *final_error);
-    bool load_data(double** data, int* n, int* d, double* theta, double* perplexity);
-    void save_data(double* data, int* landmarks, double* costs, int n, int d);
+    void run(double* X, int N, int D, double* Y,
+               int no_dims = 2, double perplexity = 30, double theta = .5,
+               int num_threads = 1, int max_iter = 1000, int random_state = 0,
+               bool init_from_Y = false, int verbose = 0,
+               double early_exaggeration = 12, double learning_rate = 200,
+               double *final_error = NULL);
     void symmetrizeMatrix(int** row_P, int** col_P, double** val_P, int N);
 private:
     double computeGradient(int* inp_row_P, int* inp_col_P, double* inp_val_P, double* Y, int N, int D, double* dC, double theta, bool eval_error);

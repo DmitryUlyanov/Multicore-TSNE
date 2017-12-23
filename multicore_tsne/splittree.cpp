@@ -1,20 +1,9 @@
-/*
- *  quadtree.cpp
- *  Implementation of a quadtree in two dimensions + Barnes-Hut algorithm for t-SNE.
- *
- *  Created by Laurens van der Maaten.
- *  Copyright 2012, Delft University of Technology. All rights reserved.
- *
- *  Multicore version by Dmitry Ulyanov, 2016. dmitry.ulyanov.msu@gmail.com
- */
-
 #include <cmath>
 #include <cfloat>
 #include <cstdlib>
 #include <cstdio>
 
-#include "quadtree.h"
-
+#include "splittree.h"
 
 
 // Checks whether a point lies in a cell
@@ -30,12 +19,12 @@ bool Cell::containsPoint(double point[])
 
 
 // Default constructor for quadtree -- build tree, too!
-QuadTree::QuadTree(double* inp_data, int N, int no_dims)
+SplitTree::SplitTree(double* inp_data, int N, int no_dims)
 {   
     QT_NO_DIMS = no_dims;
     num_children = 1 << no_dims;
 
-    // Compute mean, width, and height of current map (boundaries of quadtree)
+    // Compute mean, width, and height of current map (boundaries of SplitTree)
     double* mean_Y = new double[QT_NO_DIMS]; 
     for (int d = 0; d < QT_NO_DIMS; d++) {
         mean_Y[d] = .0;
@@ -65,14 +54,14 @@ QuadTree::QuadTree(double* inp_data, int N, int no_dims)
         width_Y[d] = max(max_Y[d] - mean_Y[d], mean_Y[d] - min_Y[d]) + 1e-5;    
     }
 
-    // Construct quadtree
+    // Construct SplitTree
     init(NULL, inp_data, mean_Y, width_Y);
     fill(N);
     delete[] max_Y; delete[] min_Y;
 }
 
-// Constructor for quadtree with particular size and parent (do not fill the tree)
-QuadTree::QuadTree(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y)
+// Constructor for SplitTree with particular size and parent (do not fill the tree)
+SplitTree::SplitTree(SplitTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y)
 {   
     QT_NO_DIMS = inp_parent->QT_NO_DIMS;
     num_children = 1 << QT_NO_DIMS;
@@ -82,7 +71,7 @@ QuadTree::QuadTree(QuadTree* inp_parent, double* inp_data, double* mean_Y, doubl
 
 
 // Main initialization function
-void QuadTree::init(QuadTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y)
+void SplitTree::init(SplitTree* inp_parent, double* inp_data, double* mean_Y, double* width_Y)
 {   
     // parent = inp_parent;
     data = inp_data;
@@ -103,8 +92,8 @@ void QuadTree::init(QuadTree* inp_parent, double* inp_data, double* mean_Y, doub
 }
 
 
-// Destructor for quadtree
-QuadTree::~QuadTree()
+// Destructor for SplitTree
+SplitTree::~SplitTree()
 {   
     for(unsigned int i = 0; i != children.size(); i++) {
         delete children[i];
@@ -113,8 +102,8 @@ QuadTree::~QuadTree()
 }
 
 
-// Insert a point into the QuadTree
-bool QuadTree::insert(int new_index)
+// Insert a point into the SplitTree
+bool SplitTree::insert(int new_index)
 {   
     // Ignore objects which do not belong in this quad tree
     double* point = data + new_index * QT_NO_DIMS;
@@ -182,7 +171,7 @@ int *get_bits(int n, int bitswanted){
 }
 
 // Create four children which fully divide this cell into four quads of equal area
-void QuadTree::subdivide() {
+void SplitTree::subdivide() {
 
     // Create children
     double* new_centers = new double[2 * QT_NO_DIMS];
@@ -203,7 +192,7 @@ void QuadTree::subdivide() {
             width_Y[d] = .5*boundary.width[d];
         }
         
-        QuadTree* qt = new QuadTree(this, data, mean_Y, width_Y);        
+        SplitTree* qt = new SplitTree(this, data, mean_Y, width_Y);        
         children.push_back(qt);
         delete[] bits; 
     }
@@ -211,16 +200,16 @@ void QuadTree::subdivide() {
 
     // Move existing points to correct children
     for (int i = 0; i < size; i++) {
-        bool flag = false;
+        // bool flag = false;
         for (int j = 0; j < num_children; j++) {
             if (children[j]->insert(index[i])) {
-                flag = true;
+                // flag = true;
                 break;
             }
         }
-        if (flag == false) {
-            index[i] = -1;
-        }
+        // if (flag == false) {
+        index[i] = -1;
+        // }
     }
     
     // This node is not leaf now
@@ -230,8 +219,8 @@ void QuadTree::subdivide() {
 }
 
 
-// Build quadtree on dataset
-void QuadTree::fill(int N)
+// Build SplitTree on dataset
+void SplitTree::fill(int N)
 {
     for (int i = 0; i < N; i++) {
         insert(i);
@@ -240,7 +229,7 @@ void QuadTree::fill(int N)
 
 
 // Compute non-edge forces using Barnes-Hut algorithm
-void QuadTree::computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q)
+void SplitTree::computeNonEdgeForces(int point_index, double theta, double* neg_f, double* sum_Q)
 {
     // Make sure that we spend no time on empty nodes or self-interactions
     if (cum_size == 0 || (is_leaf && size == 1 && index[0] == point_index)) {
