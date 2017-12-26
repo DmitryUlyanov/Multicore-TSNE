@@ -62,7 +62,7 @@ Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04.
 
 ### Run
 
-You can use it as a near drop-in replacement for [sklearn.manifold.TSNE](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.htm).
+You can use it as a near drop-in replacement for [sklearn.manifold.TSNE](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html).
 
 ```
 from MulticoreTSNE import MulticoreTSNE as TSNE
