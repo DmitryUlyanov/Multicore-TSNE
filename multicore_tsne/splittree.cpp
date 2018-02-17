@@ -152,7 +152,7 @@ bool SplitTree::insert(int new_index)
     }
     
     // Otherwise, the point cannot be inserted (this should never happen)
-    printf("%s\n", "No no, this should not happen");
+    // printf("%s\n", "No no, this should not happen");
     return false;
 }
 
