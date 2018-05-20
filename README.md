@@ -53,9 +53,7 @@ Make sure `cmake` is installed on your system, and you will also need a sensible
 
 To install the package, please do:
 ```
-git clone https://github.com/DmitryUlyanov/Multicore-TSNE.git
-cd Multicore-TSNE/
-pip install .
+pip install git+https://github.com/DmitryUlyanov/Multicore-TSNE.git
 ```
 
 Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04.
