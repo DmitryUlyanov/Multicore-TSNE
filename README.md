@@ -49,6 +49,11 @@ Python and torch wrappers are available.
 ## Python
 ### Install
 
+#### Directly from pypi
+`pip install MulticoreTSNE`
+
+#### From source
+
 Make sure `cmake` is installed on your system, and you will also need a sensible C++ compiler, such as `gcc` or `llvm-clang`. On macOS, you can get both via [homebrew](https://brew.sh/).
 
 To install the package, please do:
@@ -74,6 +79,22 @@ Y = tsne.fit_transform(X)
 Please refer to [sklearn TSNE manual](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html) for parameters explanation.
 
 This implementation `n_components=2`, which is the most common case (use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) or sklearn otherwise). Also note that some parameters are there just for the sake of compatibility with sklearn and are otherwise ignored. See `MulticoreTSNE` class docstring for more info.
+
+#### MNIST example
+```
+from sklearn.datasets import load_digits
+from MulticoreTSNE import MulticoreTSNE as TSNE
+from matplotlib import pyplot as plt
+
+digits = load_digits()
+embeddings = TSNE(n_jobs=4).fit_transform(digits.data)
+vis_x = embeddings[:, 0]
+vis_y = embeddings[:, 1]
+plt.scatter(vis_x, vis_y, c=digits.target, cmap=plt.cm.get_cmap("jet", 10), marker='.')
+plt.colorbar(ticks=range(10))
+plt.clim(-0.5, 9.5)
+plt.show()
+```
 
 ### Test
 
