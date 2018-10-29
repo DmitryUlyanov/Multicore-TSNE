@@ -43,8 +43,8 @@
 template <class treeT, double (*dist_fn)( const DataPoint&, const DataPoint&)>
 void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
                int no_dims, double perplexity, double theta ,
-               int num_threads, int max_iter, int random_state,
-               bool init_from_Y, int verbose,
+               int num_threads, int max_iter, int n_iter_early_exag,
+               int random_state, bool init_from_Y, int verbose,
                double early_exaggeration, double learning_rate,
                double *final_error) {
 
@@ -73,7 +73,7 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     // Set learning parameters
     float total_time = .0;
     time_t start, end;
-    int stop_lying_iter = 250, mom_switch_iter = 250;
+    int stop_lying_iter = n_iter_early_exag, mom_switch_iter = n_iter_early_exag;
     double momentum = .5, final_momentum = .8;
     double eta = learning_rate;
 
@@ -601,8 +601,8 @@ extern "C"
     #endif
     extern void tsne_run_double(double* X, int N, int D, double* Y,
                                 int no_dims = 2, double perplexity = 30, double theta = .5,
-                                int num_threads = 1, int max_iter = 1000, int random_state = -1,
-                                bool init_from_Y = false, int verbose = 0,
+                                int num_threads = 1, int max_iter = 1000, int n_iter_early_exag = 250,
+                                int random_state = -1, bool init_from_Y = false, int verbose = 0,
                                 double early_exaggeration = 12, double learning_rate = 200,
                                 double *final_error = NULL, int distance = 1)
     {
@@ -610,13 +610,13 @@ extern "C"
             fprintf(stderr, "Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
         if (distance == 0) {
             TSNE<SplitTree, euclidean_distance> tsne;
-            tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
-                     init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
+            tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, n_iter_early_exag,
+                     random_state, init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
         }
         else {
             TSNE<SplitTree, euclidean_distance_squared> tsne;
-            tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, random_state,
-                     init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
+            tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, n_iter_early_exag,
+                     random_state, init_from_Y, verbose, early_exaggeration, learning_rate, final_error);
         }
     }
 }

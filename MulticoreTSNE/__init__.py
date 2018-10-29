@@ -40,6 +40,12 @@ class MulticoreTSNE:
 
     Parameter `init` doesn't support 'pca' initialization, but a precomputed
     array can be passed.
+
+    Parameter `n_iter_early_exag` defines the number of iterations out of total `n_iter`
+    to spend in the early exaggeration phase of the algorithm. With default `learning_rate`,
+    the default values of 250/1000 may need to be increased when embedding large numbers
+    of observations. Properly setting `learning_rate` results in good embeddings with fewer 
+    iterations. This interplay is discussed at https://doi.org/10.1101/451690.
     """
     def __init__(self,
                  n_components=2,
@@ -47,6 +53,7 @@ class MulticoreTSNE:
                  early_exaggeration=12,
                  learning_rate=200,
                  n_iter=1000,
+                 n_iter_early_exag=250,
                  n_iter_without_progress=30,
                  min_grad_norm=1e-07,
                  metric='euclidean',
@@ -63,6 +70,7 @@ class MulticoreTSNE:
         self.early_exaggeration = early_exaggeration
         self.learning_rate = learning_rate
         self.n_iter = n_iter
+        self.n_iter_early_exag = n_iter_early_exag
         self.n_jobs = n_jobs
         self.random_state = -1 if random_state is None else random_state
         self.init = init
@@ -81,8 +89,8 @@ class MulticoreTSNE:
         self.ffi.cdef(
             """void tsne_run_double(double* X, int N, int D, double* Y,
                                     int no_dims, double perplexity, double theta,
-                                    int num_threads, int max_iter, int random_state,
-                                    bool init_from_Y, int verbose,
+                                    int num_threads, int max_iter, int n_iter_early_exag,
+                                    int random_state, bool init_from_Y, int verbose,
                                     double early_exaggeration, double learning_rate,
                                     double *final_error, int distance);""")
 
@@ -121,9 +129,9 @@ class MulticoreTSNE:
         t = FuncThread(self.C.tsne_run_double,
                        cffi_X, N, D,
                        cffi_Y, self.n_components,
-                       self.perplexity, self.angle, self.n_jobs, self.n_iter, self.random_state,
-                       init_from_Y, self.verbose, self.early_exaggeration, self.learning_rate,
-                       cffi_final_error, int(self.cheat_metric))
+                       self.perplexity, self.angle, self.n_jobs, self.n_iter, self.n_iter_early_exag,
+                       self.random_state, init_from_Y, self.verbose, self.early_exaggeration,
+                       self.learning_rate, cffi_final_error, int(self.cheat_metric))
         t.daemon = True
         t.start()
 

@@ -10,7 +10,7 @@ from MulticoreTSNE import MulticoreTSNE
 
 
 make_blobs = partial(make_blobs, random_state=0)
-MulticoreTSNE = partial(MulticoreTSNE, random_state=0)
+MulticoreTSNE = partial(MulticoreTSNE, random_state=3)
 
 
 def pdist(X):
