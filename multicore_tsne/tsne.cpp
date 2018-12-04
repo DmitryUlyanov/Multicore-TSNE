@@ -51,7 +51,7 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     if (N - 1 < 3 * perplexity) {
         perplexity = (N - 1) / 3;
         if (verbose)
-            fprintf(stderr, "Perplexity too large for the number of data points! Adjusting ...\n");
+            fprintf(stdout, "Perplexity too large for the number of data points! Adjusting ...\n");
     }
 
 #ifdef _OPENMP
@@ -68,7 +68,7 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     */
 
     if (verbose)
-        fprintf(stderr, "Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
+        fprintf(stdout, "Using no_dims = %d, perplexity = %f, and theta = %f\n", no_dims, perplexity, theta);
 
     // Set learning parameters
     float total_time = .0;
@@ -81,14 +81,14 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     double* dY    = (double*) malloc(N * no_dims * sizeof(double));
     double* uY    = (double*) calloc(N * no_dims , sizeof(double));
     double* gains = (double*) malloc(N * no_dims * sizeof(double));
-    if (dY == NULL || uY == NULL || gains == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (dY == NULL || uY == NULL || gains == NULL) { fprintf(stdout, "Memory allocation failed!\n"); exit(1); }
     for (int i = 0; i < N * no_dims; i++) {
         gains[i] = 1.0;
     }
 
     // Normalize input data (to prevent numerical problems)
     if (verbose)
-        fprintf(stderr, "Computing input similarities...\n");
+        fprintf(stdout, "Computing input similarities...\n");
 
     start = time(0);
     zeroMean(X, N, D);
@@ -118,7 +118,7 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
 
     end = time(0);
     if (verbose)
-        fprintf(stderr, "Done in %4.2f seconds (sparsity = %f)!\nLearning embedding...\n", (float)(end - start) , (double) row_P[N] / ((double) N * (double) N));
+        fprintf(stdout, "Done in %4.2f seconds (sparsity = %f)!\nLearning embedding...\n", (float)(end - start) , (double) row_P[N] / ((double) N * (double) N));
 
     /* 
         ======================
@@ -181,10 +181,10 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
             end = time(0);
 
             if (iter == 0)
-                fprintf(stderr, "Iteration %d: error is %f\n", iter + 1, error);
+                fprintf(stdout, "Iteration %d: error is %f\n", iter + 1, error);
             else {
                 total_time += (float) (end - start);
-                fprintf(stderr, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, error, (float) (end - start) );
+                fprintf(stdout, "Iteration %d: error is %f (50 iterations in %4.2f seconds)\n", iter + 1, error, (float) (end - start) );
             }
             start = time(0);
         }
@@ -205,7 +205,7 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     free(val_P); val_P = NULL;
 
     if (verbose)
-        fprintf(stderr, "Fitting performed in %4.2f seconds.\n", total_time);
+        fprintf(stdout, "Fitting performed in %4.2f seconds.\n", total_time);
 }
 
 // Compute gradient of the t-SNE cost function (using Barnes-Hut algorithm)
@@ -358,7 +358,7 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
 
     // Loop over all points to find nearest neighbors
     if (verbose)
-        fprintf(stderr, "Building tree...\n");
+        fprintf(stdout, "Building tree...\n");
 
     int steps_completed = 0;
 #ifdef _OPENMP
@@ -446,7 +446,7 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
 #ifdef _OPENMP
             #pragma omp critical
 #endif
-            fprintf(stderr, " - point %d of %d\n", steps_completed, N);
+            fprintf(stdout, " - point %d of %d\n", steps_completed, N);
         }
     }
 
@@ -607,7 +607,7 @@ extern "C"
                                 double *final_error = NULL, int distance = 1)
     {
         if (verbose)
-            fprintf(stderr, "Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
+            fprintf(stdout, "Performing t-SNE using %d cores.\n", NUM_THREADS(num_threads));
         if (distance == 0) {
             TSNE<SplitTree, euclidean_distance> tsne;
             tsne.run(X, N, D, Y, no_dims, perplexity, theta, num_threads, max_iter, n_iter_early_exag,
