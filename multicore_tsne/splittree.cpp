@@ -194,6 +194,8 @@ void SplitTree::subdivide() {
         
         SplitTree* qt = new SplitTree(this, data, mean_Y, width_Y);        
         children.push_back(qt);
+        delete[] mean_y;
+        delete[] width_Y;
         delete[] bits; 
     }
     delete[] new_centers;
