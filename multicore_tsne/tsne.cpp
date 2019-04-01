@@ -373,7 +373,7 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
 
         // Find nearest neighbors
         tree->search(obj_X[n], K + 1, &indices, &distances);
-                
+
         // Initialize some variables for binary search
         bool found = false;
         double beta = 1.0;
