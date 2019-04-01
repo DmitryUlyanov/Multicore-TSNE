@@ -48,6 +48,10 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
                double early_exaggeration, double learning_rate,
                double *final_error) {
 
+    if (random_state != -1) {
+        srand(random_state);
+    }
+
     if (N - 1 < 3 * perplexity) {
         perplexity = (N - 1) / 3;
         if (verbose)
@@ -137,9 +141,6 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
         stop_lying_iter = 0;  // Immediately stop lying. Passed Y is close to the true solution.
     }
     else {
-        if (random_state != -1) {
-            srand(random_state);
-        }
         for (int i = 0; i < N * no_dims; i++) {
             Y[i] = randn();
         }
@@ -372,7 +373,7 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
 
         // Find nearest neighbors
         tree->search(obj_X[n], K + 1, &indices, &distances);
-
+                
         // Initialize some variables for binary search
         bool found = false;
         double beta = 1.0;
