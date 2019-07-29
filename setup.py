@@ -74,10 +74,10 @@ if __name__ == '__main__':
     setup(
         name=PACKAGE_NAME,
         version=VERSION,
-        description='Multicore version of t-SNE algorithm.',
-        author="Dmitry Ulyanov (based on L. Van der Maaten's code)",
-        author_email='dmitry.ulyanov.msu@gmail.com',
-        url='https://github.com/DmitryUlyanov/Multicore-TSNE',
+        description='Forked from MulticoreTSNE (https://github.com/DmitryUlyanov/Multicore-TSNE). Fix a randomness error in tsne.cpp.',
+        author="Dmitry Ulyanov (based on L. Van der Maaten's code); Bo Li",
+        author_email='bli28@mgh.harvard.edu',
+        url='https://github.com/lilab-bcb/Multicore-TSNE',
         install_requires=[
             'numpy',
             'cffi'
