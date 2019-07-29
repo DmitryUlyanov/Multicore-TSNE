@@ -8,7 +8,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages, Extension
 
 
-PACKAGE_NAME = "MulticoreTSNE"
+PACKAGE_NAME = "MulticoreTSNE-modified"
 
 VERSION = '0.1'
 
