@@ -12,7 +12,7 @@
 #include <vector>
 
 #ifndef SPLITTREE_H
-#define SPLITREE_H
+#define SPLITTREE_H
 
 static inline double min(double x, double y) { return (x <= y ? x : y); }
 static inline double max(double x, double y) { return (x <= y ? y : x); }
