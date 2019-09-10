@@ -10,7 +10,7 @@ from setuptools import setup, find_packages, Extension
 
 PACKAGE_NAME = "MulticoreTSNE-modified"
 
-VERSION = '0.1.post1'
+VERSION = '0.1.post2'
 
 
 class CMakeExtension(Extension):
@@ -80,7 +80,8 @@ if __name__ == '__main__':
         url='https://github.com/lilab-bcb/Multicore-TSNE',
         install_requires=[
             'numpy',
-            'cffi'
+            'cffi',
+            'cmake'
         ],
         packages=find_packages(),
         include_package_data=True,
