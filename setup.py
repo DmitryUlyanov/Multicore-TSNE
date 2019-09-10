@@ -8,9 +8,9 @@ from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages, Extension
 
 
-PACKAGE_NAME = "MulticoreTSNE"
+PACKAGE_NAME = "MulticoreTSNE-modified"
 
-VERSION = '0.1'
+VERSION = '0.1.post2'
 
 
 class CMakeExtension(Extension):
@@ -74,13 +74,14 @@ if __name__ == '__main__':
     setup(
         name=PACKAGE_NAME,
         version=VERSION,
-        description='Multicore version of t-SNE algorithm.',
-        author="Dmitry Ulyanov (based on L. Van der Maaten's code)",
-        author_email='dmitry.ulyanov.msu@gmail.com',
-        url='https://github.com/DmitryUlyanov/Multicore-TSNE',
+        description='Forked from MulticoreTSNE (https://github.com/DmitryUlyanov/Multicore-TSNE). Fix a randomness error in tsne.cpp.',
+        author="Dmitry Ulyanov (based on L. Van der Maaten's code); Bo Li",
+        author_email='bli28@mgh.harvard.edu',
+        url='https://github.com/lilab-bcb/Multicore-TSNE',
         install_requires=[
             'numpy',
-            'cffi'
+            'cffi',
+            'cmake'
         ],
         packages=find_packages(),
         include_package_data=True,
