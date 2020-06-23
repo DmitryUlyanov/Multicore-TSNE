@@ -75,6 +75,7 @@ if __name__ == '__main__':
         name=PACKAGE_NAME,
         version=VERSION,
         description='Multicore version of t-SNE algorithm.',
+        license='3-clause BSD License',
         author="Dmitry Ulyanov (based on L. Van der Maaten's code)",
         author_email='dmitry.ulyanov.msu@gmail.com',
         url='https://github.com/DmitryUlyanov/Multicore-TSNE',
