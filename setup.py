@@ -11,7 +11,7 @@ from setuptools import setup, find_packages, Extension
 PACKAGE_NAME = "MulticoreTSNE"
 
 VERSION = '0.1'
-
+LICENSE="BSD-3-clause"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -74,6 +74,7 @@ if __name__ == '__main__':
     setup(
         name=PACKAGE_NAME,
         version=VERSION,
+        license=LICENSE,
         description='Multicore version of t-SNE algorithm.',
         author="Dmitry Ulyanov (based on L. Van der Maaten's code)",
         author_email='dmitry.ulyanov.msu@gmail.com',
