@@ -1,2 +1,3 @@
 numpy
 cffi
+cmake>=3.17.0
