@@ -113,6 +113,13 @@ class MulticoreTSNE:
         # X may be modified, make a copy
         X = np.array(X, dtype=float, order='C', copy=True)
 
+        if np.isnan(X).any():
+            raise ValueError((
+                "There are NaN values in the provided data. "
+                "You should either remove or impute the NaN values.\n"
+                "A possible solution are the imputer provided from sklearn."
+            ))
+
         N, D = X.shape
         init_from_Y = isinstance(self.init, np.ndarray)
         if init_from_Y:
