@@ -34,7 +34,7 @@ class MulticoreTSNE:
     * min_grad_norm
     * metric
     * method
-    
+
     When `cheat_metric` is true squared equclidean distance is used to build VPTree. 
     Usually leads to same quality, yet much faster.
 
@@ -47,6 +47,7 @@ class MulticoreTSNE:
     of observations. Properly setting `learning_rate` results in good embeddings with fewer 
     iterations. This interplay is discussed at https://doi.org/10.1101/451690.
     """
+
     def __init__(self,
                  n_components=2,
                  perplexity=30.0,
@@ -79,10 +80,12 @@ class MulticoreTSNE:
         self.kl_divergence_ = None
         self.verbose = int(verbose)
         self.cheat_metric = cheat_metric
-        assert isinstance(init, np.ndarray) or init == 'random', "init must be 'random' or array"
+        assert isinstance(
+            init, np.ndarray) or init == 'random', "init must be 'random' or array"
         if isinstance(init, np.ndarray):
             assert init.ndim == 2, "init array must be 2D"
-            assert init.shape[1] == n_components, "init array must be of shape (n_instances, n_components)"
+            assert init.shape[
+                1] == n_components, "init array must be of shape (n_instances, n_components)"
             self.init = np.ascontiguousarray(init, float)
 
         self.ffi = cffi.FFI()
@@ -100,7 +103,8 @@ class MulticoreTSNE:
                       glob(os.path.join(path, '*tsne*.dll')))[0]
             self.C = self.ffi.dlopen(os.path.join(path, sofile))
         except (IndexError, OSError):
-            raise RuntimeError('Cannot find/open tsne_multicore shared library')
+            raise RuntimeError(
+                'Cannot find/open tsne_multicore shared library')
 
     def fit(self, X, y=None):
         self.fit_transform(X, y)
@@ -113,7 +117,14 @@ class MulticoreTSNE:
         # X may be modified, make a copy
         X = np.array(X, dtype=float, order='C', copy=True)
 
-        N, D = X.shape
+        if np.isnan(X).any():
+            raise ValueError((
+                "There are NaN values in the provided data. "
+                "You should either remove or impute the NaN values.\n"
+                "A possible solution are the imputer provided from sklearn."
+            ))
+
+        N, D = X.shape  # pylint: disable=unpacking-non-sequence
         init_from_Y = isinstance(self.init, np.ndarray)
         if init_from_Y:
             Y = self.init.copy('C')
