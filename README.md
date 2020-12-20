@@ -69,7 +69,7 @@ Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04.
 
 You can use it as a near drop-in replacement for [sklearn.manifold.TSNE](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html).
 
-```
+```python
 from MulticoreTSNE import MulticoreTSNE as TSNE
 
 tsne = TSNE(n_jobs=4)
@@ -81,7 +81,7 @@ Please refer to [sklearn TSNE manual](http://scikit-learn.org/stable/modules/gen
 This implementation `n_components=2`, which is the most common case (use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) or sklearn otherwise). Also note that some parameters are there just for the sake of compatibility with sklearn and are otherwise ignored. See `MulticoreTSNE` class docstring for more info.
 
 #### MNIST example
-```
+```python
 from sklearn.datasets import load_digits
 from MulticoreTSNE import MulticoreTSNE as TSNE
 from matplotlib import pyplot as plt
