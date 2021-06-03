@@ -24,4 +24,4 @@ ENDIF()
 
 FILE(GLOB src *.cpp)
 
-ADD_LIBRARY(tsne_multicore MODULE ${src})
+ADD_LIBRARY(tsne_multicore STATIC ${src})
