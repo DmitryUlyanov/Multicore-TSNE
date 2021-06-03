@@ -381,7 +381,8 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
         double tol = 1e-5;
 
         // Iterate until we found a good perplexity
-        int iter = 0; double sum_P;
+        int iter = 0;
+        double sum_P = 0;
         while (!found && iter < 200) {
 
             // Compute Gaussian kernel row
