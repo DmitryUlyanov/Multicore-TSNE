@@ -17,10 +17,8 @@ ADD_LIBRARY(tsne_multicore STATIC tsne.cpp splittree.cpp)
 ADD_LIBRARY(tsne_multicore::tsne_multicore ALIAS tsne_multicore)
 
 FIND_PACKAGE(OpenMP 2)
-
 IF(OPENMP_FOUND)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    TARGET_LINK_LIBRARIES(tsne_multicore PRIVATE OpenMP::OpenMP_CXX)
 ELSE()
     MESSAGE(WARNING "Not using OpenMP. Performance will suffer.")
 ENDIF()
