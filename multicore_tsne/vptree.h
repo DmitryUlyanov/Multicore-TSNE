@@ -100,7 +100,7 @@ public:
         std::priority_queue<HeapItem> heap;
 
         // Variable that tracks the distance to the farthest point in our results
-        double tau = DBL_MAX;
+        double tau = std::numeric_limits<double>::max();
 
         // Perform the searcg
         search(_root, target, k, heap, tau);
