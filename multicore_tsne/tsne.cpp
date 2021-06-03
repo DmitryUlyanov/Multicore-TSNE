@@ -99,6 +99,12 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     for (int i = 0; i < N * D; i++) {
         if (X[i] > max_X) max_X = X[i];
     }
+    if (max_X == .0) {
+        free(dY);
+        free(uY);
+        free(gains);
+        return;
+    }
     for (int i = 0; i < N * D; i++) {
         X[i] /= max_X;
     }
