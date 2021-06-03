@@ -1,0 +1,6 @@
+if(@OPENMP_FOUND@)
+    include(CMakeFindDependencyMacro)
+    find_dependency(OpenMP @OpenMP_VERSION@)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/tsne_multicore_targets.cmake")

@@ -59,7 +59,7 @@ public:
 };
 
 
-double euclidean_distance_squared(const DataPoint &t1, const DataPoint &t2) {
+inline double euclidean_distance_squared(const DataPoint &t1, const DataPoint &t2) {
     double dd = .0;
     for (int d = 0; d < t1.dimensionality(); d++) {
         double t = (t1.x(d) - t2.x(d));
@@ -100,7 +100,7 @@ public:
         std::priority_queue<HeapItem> heap;
 
         // Variable that tracks the distance to the farthest point in our results
-        double tau = DBL_MAX;
+        double tau = std::numeric_limits<double>::max();
 
         // Perform the searcg
         search(_root, target, k, heap, tau);
