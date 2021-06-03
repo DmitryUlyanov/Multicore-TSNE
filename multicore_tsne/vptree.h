@@ -59,7 +59,7 @@ public:
 };
 
 
-double euclidean_distance_squared(const DataPoint &t1, const DataPoint &t2) {
+inline double euclidean_distance_squared(const DataPoint &t1, const DataPoint &t2) {
     double dd = .0;
     for (int d = 0; d < t1.dimensionality(); d++) {
         double t = (t1.x(d) - t2.x(d));
