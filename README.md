@@ -54,7 +54,7 @@ Python and torch wrappers are available.
 
 #### From source
 
-Make sure `cmake` is installed on your system, and you will also need a sensible C++ compiler, such as `gcc` or `llvm-clang`. On macOS, you can get both via [homebrew](https://brew.sh/).
+Make sure `cmake` (version <3.20) is installed on your system, and you will also need a sensible C++ compiler, such as `gcc` or `llvm-clang`. On macOS, you can get both via [homebrew](https://brew.sh/).
 
 To install the package, please do:
 ```
