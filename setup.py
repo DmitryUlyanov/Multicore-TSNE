@@ -3,7 +3,6 @@ import shutil
 import os
 import subprocess
 from os import path
-from packaging import version
 from subprocess import call as execute
 
 from setuptools.command.build_ext import build_ext
@@ -45,6 +44,7 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
+        from packaging import version
         SOURCE_DIR = ext.sourcedir
         EXT_DIR = path.abspath(path.dirname(self.get_ext_fullpath(ext.name)))
         BUILD_TEMP = self.build_temp
@@ -97,6 +97,7 @@ if __name__ == '__main__':
             'numpy',
             'cffi'
         ],
+        setup_requires=["packaging"],
         packages=find_packages(),
         include_package_data=True,
 
