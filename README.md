@@ -29,7 +29,7 @@ This is a benchmark for `70000x784` MNIST data:
 | py_bh_tsne                   | 1232            | 367            |
 | sklearn(0.18)                | ~5400           | ~20920         |
 
-I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do (you can find test script in `python/tests` folder).
+I did my best to find what is wrong with sklearn numbers, but it is the best benchmark I could do (you can find test script in `MulticoreTSNE/examples` folder).
 
 ### Multicore
 
@@ -57,19 +57,19 @@ Python and torch wrappers are available.
 Make sure `cmake` is installed on your system, and you will also need a sensible C++ compiler, such as `gcc` or `llvm-clang`. On macOS, you can get both via [homebrew](https://brew.sh/).
 
 To install the package, please do:
-```
+```bash
 git clone https://github.com/DmitryUlyanov/Multicore-TSNE.git
 cd Multicore-TSNE/
 pip install .
 ```
 
-Tested with both Python 2.7 and 3.6 (conda) and Ubuntu 14.04.
+Tested with python >= 3.6 (conda).
 
 ### Run
 
 You can use it as a near drop-in replacement for [sklearn.manifold.TSNE](http://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html).
 
-```
+```python
 from MulticoreTSNE import MulticoreTSNE as TSNE
 
 tsne = TSNE(n_jobs=4)
@@ -81,13 +81,15 @@ Please refer to [sklearn TSNE manual](http://scikit-learn.org/stable/modules/gen
 This implementation `n_components=2`, which is the most common case (use [Barnes-Hut t-SNE](https://github.com/lvdmaaten/bhtsne) or sklearn otherwise). Also note that some parameters are there just for the sake of compatibility with sklearn and are otherwise ignored. See `MulticoreTSNE` class docstring for more info.
 
 #### MNIST example
-```
-from sklearn.datasets import load_digits
+```python
+from sklearn.datasets import fetch_openml
 from MulticoreTSNE import MulticoreTSNE as TSNE
 from matplotlib import pyplot as plt
 
-digits = load_digits()
-embeddings = TSNE(n_jobs=4).fit_transform(digits.data)
+X, _ = fetch_openml(
+  "mnist_784", version=1, return_X_y=True, as_frame=False, parser="pandas"
+)
+embeddings = TSNE(n_jobs=4).fit_transform(X)
 vis_x = embeddings[:, 0]
 vis_y = embeddings[:, 1]
 plt.scatter(vis_x, vis_y, c=digits.target, cmap=plt.cm.get_cmap("jet", 10), marker='.')
@@ -100,8 +102,8 @@ plt.show()
 
 You can test it on MNIST dataset with the following command:
 
-```
-python MulticoreTSNE/examples/test.py <n_jobs>
+```bash
+python MulticoreTSNE/examples/test.py --n_jobs <n_jobs>
 ```
 
 #### Note on jupyter use
@@ -110,27 +112,6 @@ To make the computation log visible in jupyter please install `wurlitzer` (`pip 
 %load_ext wurlitzer
 ```
 Memory leakages are possible if you interrupt the process. Should be OK if you let it run until the end.
-
-## Torch
-
-To install execute the following command from repository folder:
-```
-luarocks make torch/tsne-1.0-0.rockspec
-```
-or
-
-```
-luarocks install https://raw.githubusercontent.com/DmitryUlyanov/Multicore-TSNE/master/torch/tsne-1.0-0.rockspec
-```
-
-You can run t-SNE like that:
-```
-tsne = require 'tsne'
-
-Y = tsne(X, n_components, perplexity, n_iter, angle, n_jobs)
-```
-
-`torch.DoubleTensor` type only supported for now.
 
 # License
 

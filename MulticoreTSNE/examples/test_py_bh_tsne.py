@@ -6,41 +6,18 @@ import pickle
 import numpy as np
 import matplotlib
 from cycler import cycler
-import urllib
-import os
-import sys
-
-import time
+from sklearn.datasets import fetch_openml
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
 def get_mnist():
-
-    if not os.path.exists('mnist.pkl.gz'):
-        print('downloading MNIST')
-        urllib.urlretrieve(
-            'http://deeplearning.net/data/mnist/mnist.pkl.gz', 'mnist.pkl.gz')
-        print('downloaded')
-
-    f = gzip.open("mnist.pkl.gz", "rb")
-    if sys.version_info >= (3, 0):
-        train, val, test = pickle.load(f, encoding='latin1')
-    else:
-        train, val, test = pickle.load(f)
-    f.close()
-
-    # Get all data in one array
-    _train = np.asarray(train[0], dtype=np.float64)
-    _val = np.asarray(val[0], dtype=np.float64)
-    _test = np.asarray(test[0], dtype=np.float64)
-    mnist = np.vstack((_train, _val, _test))
-
-    # Also the classes, for labels in the plot later
-    classes = np.hstack((train[1], val[1], test[1]))
-
-    return mnist, classes
+    print("Downloading MNIST dataset...")
+    X, y = fetch_openml(
+    "mnist_784", version=1, return_X_y=True, as_frame=False, parser="pandas"
+    )
+    return X, y
 
 
 def plot(Y, classes, name):

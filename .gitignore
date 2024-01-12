@@ -2,3 +2,4 @@
 
 # cmake directories
 multicore_tsne/*/*
+build
