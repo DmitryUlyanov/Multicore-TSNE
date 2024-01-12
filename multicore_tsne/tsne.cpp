@@ -84,7 +84,10 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     double* dY    = (double*) malloc(N * no_dims * sizeof(double));
     double* uY    = (double*) calloc(N * no_dims , sizeof(double));
     double* gains = (double*) malloc(N * no_dims * sizeof(double));
-    if (dY == NULL || uY == NULL || gains == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (dY == NULL || uY == NULL || gains == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
     for (int i = 0; i < N * no_dims; i++) {
         gains[i] = 1.0;
     }
@@ -98,6 +101,12 @@ void TSNE<treeT, dist_fn>::run(double* X, int N, int D, double* Y,
     double max_X = .0;
     for (int i = 0; i < N * D; i++) {
         if (X[i] > max_X) max_X = X[i];
+    }
+    if (max_X == .0) {
+        free(dY);
+        free(uY);
+        free(gains);
+        return;
     }
     for (int i = 0; i < N * D; i++) {
         X[i] /= max_X;
@@ -224,7 +233,8 @@ double TSNE<treeT, dist_fn>::computeGradient(int* inp_row_P, int* inp_col_P, dou
     double C = 0.;
 
     if (pos_f == NULL || neg_f == NULL) { 
-        fprintf(stderr, "Memory allocation failed!\n"); exit(1); 
+        fprintf(stderr, "Memory allocation failed!\n");
+        return std::numeric_limits<double>::infinity();
     }
     
 #ifdef _OPENMP
@@ -331,7 +341,10 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
     *_row_P = (int*)    malloc((N + 1) * sizeof(int));
     *_col_P = (int*)    calloc(N * K, sizeof(int));
     *_val_P = (double*) calloc(N * K, sizeof(double));
-    if (*_row_P == NULL || *_col_P == NULL || *_val_P == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (*_row_P == NULL || *_col_P == NULL || *_val_P == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
 
     /*
         row_P -- offsets for `col_P` (i)
@@ -381,7 +394,8 @@ void TSNE<treeT, dist_fn>::computeGaussianPerplexity(double* X, int N, int D, in
         double tol = 1e-5;
 
         // Iterate until we found a good perplexity
-        int iter = 0; double sum_P;
+        int iter = 0;
+        double sum_P = 0;
         while (!found && iter < 200) {
 
             // Compute Gaussian kernel row
@@ -465,7 +479,10 @@ void TSNE<treeT, dist_fn>::symmetrizeMatrix(int** _row_P, int** _col_P, double**
 
     // Count number of elements and row counts of symmetric matrix
     int* row_counts = (int*) calloc(N, sizeof(int));
-    if (row_counts == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (row_counts == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
     for (int n = 0; n < N; n++) {
         for (int i = row_P[n]; i < row_P[n + 1]; i++) {
 
@@ -494,7 +511,10 @@ void TSNE<treeT, dist_fn>::symmetrizeMatrix(int** _row_P, int** _col_P, double**
     int*    sym_row_P = (int*)    malloc((N + 1) * sizeof(int));
     int*    sym_col_P = (int*)    malloc(no_elem * sizeof(int));
     double* sym_val_P = (double*) malloc(no_elem * sizeof(double));
-    if (sym_row_P == NULL || sym_col_P == NULL || sym_val_P == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (sym_row_P == NULL || sym_col_P == NULL || sym_val_P == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
 
     // Construct new row indices for symmetric matrix
     sym_row_P[0] = 0;
@@ -502,7 +522,10 @@ void TSNE<treeT, dist_fn>::symmetrizeMatrix(int** _row_P, int** _col_P, double**
 
     // Fill the result matrix
     int* offset = (int*) calloc(N, sizeof(int));
-    if (offset == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (offset == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
     for (int n = 0; n < N; n++) {
         for (int i = row_P[n]; i < row_P[n + 1]; i++) {                                 // considering element(n, col_P[i])
 
@@ -560,7 +583,10 @@ void TSNE<treeT, dist_fn>::zeroMean(double* X, int N, int D) {
 
     // Compute data mean
     double* mean = (double*) calloc(D, sizeof(double));
-    if (mean == NULL) { fprintf(stderr, "Memory allocation failed!\n"); exit(1); }
+    if (mean == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return;
+    }
     for (int n = 0; n < N; n++) {
         for (int d = 0; d < D; d++) {
             mean[d] += X[n * D + d];
