@@ -9,7 +9,7 @@ SET(TSNE_MULTICORE_HEADER_FILES
 )
 
 ADD_LIBRARY(tsne_multicore
-STATIC
+SHARED
     tsne.cpp
     splittree.cpp
 
